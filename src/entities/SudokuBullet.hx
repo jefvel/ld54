@@ -13,9 +13,15 @@ class SudokuBullet extends Entity {
 	var vals = [];
 	public var onLanded: SudokuBullet -> Void;
 	public var button:Interactive;
-	public function new(?p, vals: Array<Int>) {
+	public var small = false;
+	public function new(?p, vals: Array<Int>, small = false) {
 		super(p);
 		this.vals = vals;
+		this.small = small;
+		if (small) {
+			width = 16;
+			height = 16;
+		}
 		buildSprite();
 	}
 
@@ -116,8 +122,9 @@ class SudokuBullet extends Entity {
 	}
 
 	function buildSprite() {
-		var totalHeight = vals.length * 32;
-		var totalWidth = 32;
+		var si = small ? 16.0 : 32.0;
+		var totalHeight = vals.length * si;
+		var totalWidth = si;
 		width = totalWidth;
 		height = totalHeight;
 		var sx = -totalWidth * 0.5; 
@@ -125,9 +132,14 @@ class SudokuBullet extends Entity {
 		var l = vals.length;
 		var font = hxd.Res.fonts.marumonica.toFont();
 		for (i in 0...l) {
-			var s = hxd.Res.img.sutile.toSprite(this);
+			var s: Sprite;
+			if (!small) {
+				s = hxd.Res.img.sutile.toSprite(this);
+			} else {
+				s = hxd.Res.img.tilesmall.toSprite(this);
+			}
 			s.x = sx;
-			s.y = sy + 32 * i;
+			s.y = sy + si * i;
 			var frame = 0;
 			if (i == 0 && l > 1) {
 				frame = 1;
@@ -147,9 +159,9 @@ class SudokuBullet extends Entity {
 			sps.push(s);
 
 			var t = new Text(font, s);
-			t.x = 16;
+			t.x = Math.round(si * 0.5);
 			t.text = '${vals[i]}';
-			t.y = Math.round((32 - t.textHeight) * 0.5);
+			t.y = Math.round((si - t.textHeight) * 0.5);
 			t.textColor = 0x394a50;
 			t.textAlign = Align.Center;
 			lbl = t;
@@ -160,7 +172,13 @@ class SudokuBullet extends Entity {
 		button.y = -totalHeight * 0.5;
 		button.onOver = e -> { 
 			if (fired) return;
-			onSelect(this);
+			if (onSelect != null) onSelect(this);
 		};
+		button.onPush = e -> {
+			if (onPress != null) {
+				onPress(this);
+			}
+		}
 	}
+	public var onPress: SudokuBullet -> Void;
 }

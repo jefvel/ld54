@@ -6,7 +6,7 @@ import h2d.Text;
 import elk.graphics.Sprite;
 import elk.entity.Entity;
 
-class Ladder extends Entity {
+class Ladder extends Actor {
 	var sprite:Sprite;
 	
 	var arrow: Sprite;
@@ -19,6 +19,9 @@ class Ladder extends Entity {
 	
 	public function new(?p) {
 		super(p);
+		mass = 0.0;
+		radius = 12.0;
+		
 		sprite = hxd.Res.img.ladder.toSprite(this);
 		sprite.originX = 32;
 		sprite.originY = 58;

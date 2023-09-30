@@ -1,5 +1,6 @@
 package gamestates;
 
+import entities.OverWorld;
 import entities.Ladder;
 import h2d.Graphics;
 import elk.M;
@@ -42,6 +43,8 @@ class PlayState extends GameState {
 	
 	var aiming = false;
 	var graphics:Graphics;
+	
+	public var overworld: OverWorld;
 
 	function onSelectBrick(brick: SudokuBullet) {
 		if (aiming) return;
@@ -128,6 +131,8 @@ class PlayState extends GameState {
 
 		graphics = new Graphics(world);
 		crosshair = new ScaleGrid(hxd.Res.img.crosshair.toTile(), 16,16, 16, 16, world);
+		
+		overworld = new OverWorld(container);
 	}
 	
 	var overGroundTime = 0.0;
@@ -236,7 +241,6 @@ class PlayState extends GameState {
 		board.nudge();
 		if (bricks.empty && landedBullets == firedBullets.length) {
 			trace('wow emptied queue');
-			ladder.enabled = true;
 			checking = true;
 			untilCheckNext = 1.0;
 		}
@@ -259,6 +263,9 @@ class PlayState extends GameState {
 			}
 
 			b.remove();
+		} else {
+			checking = false;
+			ladder.enabled = true;
 		}
 	}
 	
@@ -274,6 +281,12 @@ class PlayState extends GameState {
 		if (checking) {
 			untilCheckNext -= dt;
 			if (untilCheckNext <= 0) checkNext();
+		}
+		
+		if (man.onLadder && man.y < 30) {
+			if (!overworld.running) {
+				overworld.start();
+			}
 		}
 		
 		crosshair.alpha = crosshairAlpha.value;

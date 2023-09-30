@@ -18,9 +18,9 @@ class CollectedBullets extends Entity {
 		super(p);
 
 		addRandomBrick();
-		addRandomBrick();
-		addRandomBrick();
-		addRandomBrick();
+		//addRandomBrick();
+		//addRandomBrick();
+		//addRandomBrick();
 		//addRandomBrick();
 		//addRandomBrick();
 		
