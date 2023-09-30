@@ -1,0 +1,25 @@
+--macro elk.buildutil.Config.initConfig()
+
+-cp src
+
+-lib heaps
+
+-lib deepnightLibs
+-lib ldtk-haxe-api
+#-lib heaps-aseprite
+-lib hscript
+-lib castle
+-lib stb_ogg_sound
+-lib newgrounds
+-lib differ
+-lib elk
+
+-lib echo
+-D ECHO_USE_HEAPS
+
+# -lib hide
+# -lib hxbit
+
+-main Main
+
+config.hxml

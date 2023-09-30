@@ -1,0 +1,24 @@
+{
+	"skipTerminateQuickPick": true,
+	"skipSwitchToOutput": false,
+	"skipErrorMessage": true,
+	"commands": [
+		{
+			"text": "🔨 Generate Assets",
+			"color": "purple",
+			"commandType":"palette",
+			"command": "workbench.action.tasks.runTask|Generate Assets",
+			"alignment": "right",
+			"skipTerminateQuickPick": false,
+			"priority": -9
+		},
+		{
+			"text": "📦 Redist",
+			"color": "lightgreen",
+			"command": "haxelib run redistHelper build-dx.hxml build-sdl.hxml build-js.hxml -o redist",
+			"alignment": "right",
+			"skipTerminateQuickPick": false,
+			"priority": -50
+		}
+	]
+}

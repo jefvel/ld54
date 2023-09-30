@@ -1,0 +1,13 @@
+#build-dx.hxml
+#build-js.hxml
+
+build-sdl.hxml
+
+-D hot-reload
+-D hotReload
+
+#-D hl-profile
+
+-debug
+
+-lib hlsdl

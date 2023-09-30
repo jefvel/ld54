@@ -1,0 +1,6 @@
+_base.hxml
+
+tool.generateAssets.hxml
+
+-js build/web/game.js
+--macro elk.buildutil.WebGenerator.generate()

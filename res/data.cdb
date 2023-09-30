@@ -1,0 +1,66 @@
+{
+	"sheets": [
+		{
+			"name": "texts",
+			"columns": [
+				{
+					"typeStr": "0",
+					"name": "ID",
+					"kind": null,
+					"scope": null
+				},
+				{
+					"typeStr": "1",
+					"name": "Text",
+					"kind": null
+				}
+			],
+			"lines": [
+				{
+					"ID": "Hello",
+					"Text": "World"
+				}
+			],
+			"separators": [],
+			"props": {}
+		},
+		{
+			"name": "character",
+			"columns": [
+				{
+					"typeStr": "0",
+					"name": "ID",
+					"kind": null,
+					"scope": null
+				},
+				{
+					"typeStr": "1",
+					"name": "Name",
+					"kind": null
+				},
+				{
+					"typeStr": "4",
+					"name": "MoveSpeed",
+					"kind": null
+				},
+				{
+					"typeStr": "4",
+					"name": "MaxSpeed",
+					"kind": null
+				}
+			],
+			"lines": [
+				{
+					"ID": "Man",
+					"Name": "A Man",
+					"MaxSpeed": 700,
+					"MoveSpeed": 8
+				}
+			],
+			"separators": [],
+			"props": {}
+		}
+	],
+	"customTypes": [],
+	"compress": false
+}

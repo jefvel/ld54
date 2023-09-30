@@ -1,0 +1,55 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+		{
+			"type": "haxe",
+			"args": "active configuration",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+                "reveal": "always",
+				"revealProblems": "never",
+                "clear": true
+            },
+		},
+		{
+			"label": "Generate Assets",
+			"type": "hxml",
+			"file": "tool.generateAssets.hxml"
+		},
+		{
+			"label": "HeapsJS",
+			"type": "hxml",
+			"file": "build-js.hxml"
+		},
+		{
+			"label": "Heaps Debug",
+			"type": "hxml",
+			"file": "build-debug.hxml",
+			"presentation": {
+                "reveal": "never",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": [
+				"$haxe-absolute",
+				"$haxe",
+				"$haxe-error",
+				"$haxe-trace"
+			],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+		},
+		{
+			"label": "HeapsHL.DX",
+			"type": "hxml",
+			"file": "build-dx.hxml"
+		},
+    ]
+}
