@@ -14,9 +14,10 @@ class TestEntity extends elk.entity.Entity {
 	var sprite : Sprite;
 
 	public function new(?p) {
+		super(p);
 		data = CData.character.get(Man);
 		friction = 10.;
-		sprite = hxd.Res.img.ball.toSprite(p);
+		sprite = hxd.Res.img.ball.toSprite(this);
 		sprite.originX = 32;
 		t = Math.random() * 30;
 		sprite.originY = 64;
@@ -54,7 +55,7 @@ class TestEntity extends elk.entity.Entity {
 		}
 		
 		if (hxd.Math.distance(lx - x, ly - y) > 22) {
-			//elk.Elk.instance.sounds.playSound(hxd.Res.sound.click);
+			elk.Elk.instance.sounds.playSound(hxd.Res.sound.click);
 			lx = x;
 			ly = y;
 		}
@@ -63,7 +64,7 @@ class TestEntity extends elk.entity.Entity {
 	override function render() {
 		// sprite.x = x;
 		// sprite.y = y;
-		sprite.x = interpX;
-		sprite.y = interpY;
+		//x = interpX;
+		//y = interpY;
 	}
 }

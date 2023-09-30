@@ -16,6 +16,6 @@ class Main extends elk.Elk{
 	}
 
 	public static function main() {
-		app = new Main(60, 3);
+		app = new Main(60, 2);
 	}
 }

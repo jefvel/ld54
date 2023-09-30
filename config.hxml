@@ -3,10 +3,10 @@
 ###
 
 ## Window
--D windowTitle=Game Base
+-D windowTitle=LD 54
 -D windowSize=1280x720
 # Sets the default color of the scene + html background
--D backgroundColor=#0a0a0a
+-D backgroundColor=#202e37
 
 -D tickRate=60
 
@@ -18,7 +18,7 @@
 
 ## Saves
 # Change this to a unique identifier for your game
--D saveNamespace=jefvel.gamebase
+-D saveNamespace=jefvel.ld54
 
 ## HTML/Js Specific values
 # Twitter card
