@@ -10,7 +10,7 @@ import elk.graphics.Sprite;
 import elk.entity.Entity;
 
 class SudokuBullet extends Entity {
-	var vals = [];
+	public var vals = [];
 	public var onLanded: SudokuBullet -> Void;
 	public var button:Interactive;
 	public var small = false;
@@ -42,6 +42,7 @@ class SudokuBullet extends Entity {
 	var fireTime = new EasedFloat(0, 0.4);
 	var fireDuration = 0.0;
 	var hit = false;
+	public var lifeTime = 0.0;
 	public var state: PlayState;
 	public function fireAt(tile: SudokuTile) {
 		if (fired) return;
@@ -55,11 +56,22 @@ class SudokuBullet extends Entity {
 		startX = x;
 		startY = y;
 		var g = tile.getAbsPos();
-		targetX = parent.x + g.x + 16;
-		targetY = parent.y + g.y + 16;
+		targetX = -parent.x + g.x + 16;
+		targetY = -parent.y + g.y + 16;
 		fireTime.value = 1.0;
 
 		rv = Math.random() * 2 - 1.0;
+	}
+	
+	public var discarded = false;
+	var discardTime = 0.0;
+	public function discard() {
+		discarded = true;
+		vx = Math.random() * 100 - 50;
+		vy = -Math.random() * 24 - 15;
+		rv = Math.random() * 1 - 0.5;
+		friction = 0.0;
+		button.visible = false;
 	}
 	
 	public function hasValue(val) {
@@ -83,6 +95,21 @@ class SudokuBullet extends Entity {
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+		lifeTime += dt;
+		if (discarded) {
+			discardTime += dt;
+			vy += 30.3;
+			// vx *= 0.99;
+			rv *= 0.9;
+			if (discardTime > 2.0) {
+				alpha *= 0.6;
+				if (alpha < 0.1) {
+					remove();
+				}
+			}
+			rotation += rv;
+			return;
+		}
 		if (!popped && Math.abs(x - targetX) < 10 && Math.abs(y - targetY) < 10) {
 			Elk.instance.sounds.playWobble(hxd.Res.sound.pop, 0.3);
 			popped = true;
@@ -123,7 +150,8 @@ class SudokuBullet extends Entity {
 
 	function buildSprite() {
 		var si = small ? 16.0 : 32.0;
-		var totalHeight = vals.length * si;
+		var sih = small ? 20.0 : 32;
+		var totalHeight = vals.length * sih;
 		var totalWidth = si;
 		width = totalWidth;
 		height = totalHeight;
@@ -139,7 +167,7 @@ class SudokuBullet extends Entity {
 				s = hxd.Res.img.tilesmall.toSprite(this);
 			}
 			s.x = sx;
-			s.y = sy + si * i;
+			s.y = sy + sih * i;
 			var frame = 0;
 			if (i == 0 && l > 1) {
 				frame = 1;
@@ -161,11 +189,12 @@ class SudokuBullet extends Entity {
 			var t = new Text(font, s);
 			t.x = Math.round(si * 0.5);
 			t.text = '${vals[i]}';
-			t.y = Math.round((si - t.textHeight) * 0.5);
+			t.y = Math.round((sih - t.textHeight) * 0.5);
 			t.textColor = 0x394a50;
 			t.textAlign = Align.Center;
 			lbl = t;
 		}
+		if (!small) {
 		
 		button = new Interactive(totalWidth, totalHeight, this);
 		button.x = sx;
@@ -179,6 +208,7 @@ class SudokuBullet extends Entity {
 				onPress(this);
 			}
 		}
+	}
 	}
 	public var onPress: SudokuBullet -> Void;
 }

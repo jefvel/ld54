@@ -9,7 +9,7 @@ class LilLadder extends Actor {
 	public var enabled = false;
 	var arrw: Sprite;
 	var txt: Text;
-	var button: Interactive;
+	public var button: Interactive;
 	public function new(?p) {
 		super(p);
 		mass = 0;
@@ -23,7 +23,7 @@ class LilLadder extends Actor {
 		arrw.originX = arrw.originY = 10;
 		arrw.y = -20;
 		txt = new Text(hxd.Res.fonts.marumonica.toFont(), arrw);
-		txt.text = "Click Ladder/Hold down Mouse button\nTo Return";
+		txt.text = "Click Ladder\nTo Return";
 		txt.x = 16;
 		txt.y = -txt.textHeight * 0.5;
 		enabled = false;

@@ -1,5 +1,6 @@
 package entities;
 
+import gamestates.PlayState;
 import h2d.Object;
 import elk.util.EasedFloat;
 import h2d.ScaleGrid;
@@ -11,7 +12,7 @@ class SudokuBoard extends Entity {
 	var solution = [];
 	
 	var bg: ScaleGrid;
-	var tiles: Array<SudokuTile>;
+	public var tiles: Array<SudokuTile> = [];
 	
 	public var height = 0.0;
 	public var width = 0.0;
@@ -48,14 +49,118 @@ class SudokuBoard extends Entity {
 		return grid[row * 9 + col] = val;
 	}
 	
-	public function new(?p) {
+	var state: PlayState;
+	public function new(?p, state) {
 		super(p);
+		this.state = state;
 		offYEase.easeFunction = elk.M.elasticOut;
+		container = new Object(this);
+		bg = new ScaleGrid(hxd.Res.img.bottom.toTile(), 8, 8, 8, 10, container);
+		var ts = tileSize;
+		width = ts * 9 + 6 * 2;
+		height = ts * 9 + 6 * 2;
+		bg.x = -padding;
+		bg.y = -padding;
+		bg.width = width + padding * 2 - 1;
+		bg.height = height + padding * 2 + 2;
+	}
+	
+	public function getTileAt(row, col) {
+		return tiles[row * 9 + col];
+	}
+	
+	public function isRowClear(row:Int) {
+		for (col in 0...9) {
+			if (!getTileAt(row, col).solved) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public function isColClear(col:Int) {
+		for (row in 0...9) {
+			if (!getTileAt(row, col).solved) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public function isBlockClear(row: Int, col:Int) {
+		var sx = Std.int(col / 3);
+		var sy = Std.int(row / 3);
+		for (r in 0...3) {
+			for (c in 0...3) {
+				if (!getTileAt(sy * 3 + r, sx * 3 + c).solved) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 	
 	var rand: Rand;
 	public var padding = 8;
 	var container: Object;
+	public function getDigitsLeft(includePlacedBullets = false) {
+		var digits = [];
+		for (c in tiles) {
+			if (includePlacedBullets && c.bullet != null) {
+				if (c.bullet.hasValue(c.value)) {
+					continue;
+				}
+			}
+
+			if (!c.solved) {
+				digits.push(c.value);
+			}
+		}
+		
+		return digits;
+	}
+	
+	public function freeCellCount() {
+		var i = 0;
+		for (c in tiles) {
+			if (!c.solved && c.bullet == null) {
+				i ++;
+			}
+		}
+		return i;
+	}
+	
+	public function solveProgress() {
+		var emptyCount = 0;
+		var solvedCount = 0;
+		for (i in tiles) {
+			if (!i.presolved) {
+				emptyCount ++;
+				if (i.solved) {
+					solvedCount ++;
+				}
+			}
+		}
+
+		if (emptyCount == 0) {
+			return 0.0;
+		}
+
+		return solvedCount / emptyCount;
+	}
+	
+	public function isSolved() {
+		if (tiles.length == 0) return false;
+		for (c in tiles) {
+			if (!c.solved) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
 	public function generate(seed = 1337) {
 		rand = new Rand(seed);
 		grid = templateBoard.copy();
@@ -70,33 +175,25 @@ class SudokuBoard extends Entity {
 
 		removeCells();
 		
-		tiles = [];
-		container = new Object(this);
-		
-		bg = new ScaleGrid(hxd.Res.img.bottom.toTile(), 8, 8, 8, 10, container);
-		
-		var ts = 34;
 
+		var ts = tileSize;
 		for (row in 0...9) {
 			for (col in 0...9) {
 				var val = getVal(row, col);
 				var sol = getSol(row, col);
-				var tile = new SudokuTile(container, sol, val != -1, row, col);
+				var tile = new SudokuTile(container, sol, val != -1, row, col, state);
 				var gapsY = Std.int(row / 3) * 6;
 				var gapsX = Std.int(col / 3) * 6;
 				tile.x = col * ts + gapsX;
 				tile.y = row * ts + gapsY;
 				tile.onOver = onHoverCell;
+				tiles.push(tile);
 			}
 		}
 		
-		width = ts * 9 + 6 * 2;
-		height = ts * 9 + 6 * 2;
-		bg.x = -padding;
-		bg.y = -padding;
-		bg.width = width + padding * 2 - 1;
-		bg.height = height + padding * 2 + 2;
 	}
+	
+	var tileSize = 34;
 	
 	public function nudge() {
 		offYEase.setImmediate(7);

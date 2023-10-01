@@ -1,11 +1,12 @@
 package entities;
 
+import hxd.Key;
 import h2d.Tile;
 import h2d.Bitmap;
 import elk.entity.Entity;
 
 class CollectedBullets extends Entity {
-	public var bricks = [];
+	public var bricks:Array<SudokuBullet> = [];
 
 	public var onSelect:SudokuBullet -> Void;
 	
@@ -17,7 +18,21 @@ class CollectedBullets extends Entity {
 	public function new(?p) {
 		super(p);
 
+
 		addRandomBrick();
+		/*
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		addRandomBrick();
+		*/
 		//addRandomBrick();
 		//addRandomBrick();
 		//addRandomBrick();
@@ -59,14 +74,53 @@ class CollectedBullets extends Entity {
 		parent.addChild(b);
 		bricks.push(b);
 	}
+	public function discardCards(?filter: Array<Int>) {
+		for(b in bricks) {
+			if (b.target != null) {
+				continue;
+			}
+			
+			var doDiscard = true;
+			if (filter != null) {
+				for (i in filter) {
+					if (b.hasValue(i)) {
+						doDiscard = false;
+					}
+				}
+			}
+
+			if (doDiscard) {
+				b.discard();
+				bricks.remove(b);
+			}
+		}
+	}
+
+	override function render() {
+		super.render();
+		#if debug
+		if(Key.isDown(Key.D)) {
+			discardCards();	
+		}
+		if (Key.isPressed(Key.C)) {
+			addRandomBrick();
+		}
+		#end
+	}
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
 		var sy = 0.0;
+		var sx = 0.0;
 		for (i in 0...bricks.length) {
 			var b = bricks[i];
-			b.y =y + sy + b.height * 0.5;
-			b.x = x+ 16;
+			if (sy + b.height > 256) {
+				sy = 0;
+				sx += 36;
+			}
+			b.y += (y + sy + b.height * 0.5 - b.y) * 0.2;
+			b.x += (x + 16 + sx - b.x) * 0.2;
+
 			sy += b.height + 6;
 		}
 	}

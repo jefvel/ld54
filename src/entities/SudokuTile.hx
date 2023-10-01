@@ -1,13 +1,17 @@
 package entities;
 
-import hl.I64;
+import h2d.Bitmap;
+import gamestates.PlayState;
+import elk.Elk;
+import hxd.Key;
+import h2d.RenderContext;
 import elk.entity.Entity;
 import h2d.Interactive;
 import h2d.Text;
 import elk.graphics.Sprite;
 import h2d.Object;
 
-class SudokuTile extends Object {
+class SudokuTile extends Entity {
 	var sprite: Sprite;
 	var text: Text;
 	var button: Interactive;
@@ -23,8 +27,13 @@ class SudokuTile extends Object {
 	
 	public var solved = false;
 
-	public function new(?p, value, presolved = false, row, col) {
+	public var triedValues:Map<Int, Bool> = new Map();
+	public var state: PlayState;
+	var cross: Bitmap;
+
+	public function new(?p, value, presolved = false, row, col, state) {
 		super(p);
+		this.state = state;
 		this.presolved = presolved;
 		this.solved = presolved;
 		this.value = value;
@@ -45,20 +54,87 @@ class SudokuTile extends Object {
 		button.y = -4;
 		button.cursor = Default;
 		updateSprite();
+		cross = new Bitmap(hxd.Res.img.cross.toTile(), this);
+		cross.y = -2;
+		cross.visible = false;
 	}
 	
 	public function solve() {
 		solved = true;
 		updateSprite();
+		// flash();
+
+		var spr = hxd.Res.img.successpoof.toSprite(this);
+		spr.originX = spr.originY = 20;
+		spr.x = spr.y = 16;
+		spr.animation.play("poof", false);
+		spr.animation.onEnd = e -> spr.remove();
+		if (bullet != null) {
+			for (v in bullet.vals) {
+				triedValues[v] = true;
+			}
+		}
+	}
+
+	public function poof() {
+		Elk.instance.sounds.playWobble(hxd.Res.sound.poof, 0.1);
+		var spr = hxd.Res.img.poof.toSprite(this);
+		spr.originX = spr.originY = 16;
+		spr.x = spr.y = 16;
+		spr.animation.play("poof", false);
+		spr.animation.onEnd = e -> spr.remove();
+		if (bullet != null) {
+			for (v in bullet.vals) {
+				triedValues[v] = true;
+			}
+		}
 	}
 	
+	var flashCol = 0.0;
+	public function flash() {
+		flashCol = 1.0;
+	}
 	
-	function updateSprite() {
+	override function tick(dt:Float) {
+		super.tick(dt);
+		flashCol -= dt * 2.0;
+		flashCol = Math.max(0.0, flashCol);
+		var c = 1.0 + flashCol * 10.0;
+		sprite.color.set(c, c, c);
+		var crossVisible = false;
+		if (!solved && bullet == null) {
+			if (state.man.selectedBrick != null) {
+				var b = state.man.selectedBrick.vals;
+				var v = true;
+				for (val in b) {
+					if (!triedValues.exists(val)) {
+						v = false;
+						break;
+					}
+				}
+				crossVisible = v;
+			}
+		}
+
+		cross.visible = crossVisible;
+	}
+
+	override function sync(ctx:RenderContext) {
+		super.sync(ctx);
+		#if debug
+		if (!solved) {
+			text.visible = Key.isDown(Key.SHIFT);
+		}
+		#end
+	}
+	
+	public function updateSprite() {
 		var textColor = 0xffffff;
+		text.text = '$value';
 		if (solved) {
-			text.text = '$value';
+			text.visible = true;
 		} else {
-			text.text = '';
+			text.visible = false;
 		}
 		text.y = Math.round((32 - text.textHeight) * 0.5);
 		text.x = 32 * 0.5;

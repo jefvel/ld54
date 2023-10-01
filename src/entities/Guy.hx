@@ -62,7 +62,7 @@ class Guy extends Entity {
 		sprite.originY = 40;
 	}
 	
-	var climbing = false;
+	public var climbing = false;
 	public function climb() {
 		climbing = true;
 		onLadder = false;
@@ -72,13 +72,14 @@ class Guy extends Entity {
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+		if (selectedBrick != null && selectedBrick.discarded) {
+			selectedBrick = null;
+		}
 		
 		var l = 0.0;
 		var moving = false;
 		var tx = x;
 		var ty = y;
-		
-		
 
 		if (!kicking && selectedBrick != null) {
 			moving = true;

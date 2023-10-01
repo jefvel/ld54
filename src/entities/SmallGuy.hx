@@ -56,11 +56,33 @@ class SmallGuy extends Actor {
 	}
 	
 	public var onLadder = false;
+
+	var invulnTime = 0.0;
+	public function hurt(e: Enemy) {
+		if (invulnTime > 0) {
+			return false;
+		}
+		state.onHurt(e);
+		invulnTime = 1.0;
+		Elk.instance.sounds.playWobble(hxd.Res.sound.playerhurt);
+		return true;
+	}
+	public var dead = false;
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+		if (dead) {
+			sprite.animation.pause = true;
+			sprite.remove();
+			return;
+		}
 		if (!state.running) {
 			return;
+		}
+		
+		if (invulnTime > 0) {
+			invulnTime -= dt;
+			sprite.color.r = 1 + invulnTime * 100;
 		}
 		
 		var l = 0.0;
@@ -81,12 +103,20 @@ class SmallGuy extends Actor {
 			dx *= 0.2;
 			dy *= 0.2;
 			l = Math.sqrt(dx * dx + dy * dy);
-			if (l > maxSpeed) {
+			var mspeed = maxSpeed;
+			var carryin = state.pickedUp.length;
+			var spdown = 1.0;
+			if (carryin > 3) {
+				spdown -= (carryin - 3) * 0.2;
+				spdown = Math.max(spdown, 0.3);
+			}
+			mspeed *= spdown;
+			if (l > mspeed) {
 				dx /= l;
 				dy /= l;
-				dx *= maxSpeed;
-				dy *= maxSpeed;
-				l = maxSpeed;
+				dx *= mspeed;
+				dy *= mspeed;
+				l = mspeed;
 			}
 			vx = dx * 40;
 			vy = dy * 40;

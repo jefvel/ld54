@@ -29,7 +29,14 @@ class Bullet extends Actor {
 		dy *= speed;
 		if (l < speed) {
 			target.hurt(damage);
+			var s = hxd.Res.img.enemyhit.toSprite(parent);
+			s.x = x;
+			s.y = y;
+			s.originX = s.originY = 8;
+			s.animation.play("fire", false);
+			s.animation.onEnd = e -> s.remove();
 			remove();
+
 			elk.Elk.instance.sounds.playWobble(hxd.Res.sound.hit);
 		} else {
 			x += dx;

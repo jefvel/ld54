@@ -1,12 +1,12 @@
 package entities;
 
-import h3d.Vector;
 import elk.graphics.Sprite;
 
 class Enemy extends Actor {
 	public var health = 3.0;
 	public var sprite: Sprite;
 	public var maxSpeed = 9.0;
+	public var revivePower = 0.5;
 
 	var state: OverWorld;
 	
@@ -17,6 +17,7 @@ class Enemy extends Actor {
 
 	function new(?p, state) {
 		super(p);
+		radius = 6.0;
 		this.state = state;
 	}
 	
@@ -36,10 +37,18 @@ class Enemy extends Actor {
 	
 	function onDie() {
 		if (dead) return;
+		uncollidable = true;
 		dead = true;
+		var s = hxd.Res.img.enemyexplode.toSprite(parent);
+		s.x = x;
+		s.y = y - 16;
+		s.originX = s.originY = 16;
+		s.animation.play("fire", false);
+		s.animation.onEnd = e -> s.remove();
 		state.onEnemyDie(this);
 	}
 	
+	var bouncingOffTime = 0.0;
 	override function tick(dt:Float) {
 		super.tick(dt);
 		if (flasTime > 0) {
@@ -48,6 +57,13 @@ class Enemy extends Actor {
 		} else {
 			sprite.color.set(1, 1, 1);
 		}
+		if (bouncingOffTime > 0) {
+			bouncingOffTime -= dt;
+			vx *= 0.9;
+			vy *= 0.9;
+			return;
+		}
+
 		var dx = state.man.x - x;
 		var dy = state.man.y - y;
 		var l = Math.sqrt(dx * dx + dy * dy);
@@ -61,6 +77,16 @@ class Enemy extends Actor {
 			sprite.scaleX = -1;
 		} else if (vx > 0.5) {
 			sprite.scaleX = 1.0;
+		}
+
+		if (!dead) {
+			if (l < radius + state.man.radius + 2) {
+				if (state.man.hurt(this)) {
+					bouncingOffTime = 0.5;
+					vx = -dx * 30;
+					vy = -dy * 30;
+				}
+			}
 		}
 	}
 }
