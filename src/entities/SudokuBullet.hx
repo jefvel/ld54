@@ -1,5 +1,6 @@
 package entities;
 
+import h2d.Object;
 import gamestates.PlayState;
 import elk.Elk;
 import elk.M;
@@ -14,15 +15,24 @@ class SudokuBullet extends Entity {
 	public var onLanded: SudokuBullet -> Void;
 	public var button:Interactive;
 	public var small = false;
-	public function new(?p, vals: Array<Int>, small = false) {
+	public var isMagic = false;
+	var wrapper: Object;
+	public function new(?p, vals: Array<Int>, small = false, isMagic = false) {
 		super(p);
+		this.isMagic = isMagic;
 		this.vals = vals;
 		this.small = small;
+		wrapper =new Object(this);
 		if (small) {
 			width = 16;
 			height = 16;
 		}
 		buildSprite();
+		bounceT.easeFunction = M.bounceOut;
+		if (small) {
+			bounceT.setImmediate(-5);
+			bounceT.value = 0.0;
+		}
 	}
 
 	public var height = 32.0;
@@ -65,6 +75,7 @@ class SudokuBullet extends Entity {
 	
 	public var discarded = false;
 	var discardTime = 0.0;
+	var bounceT = new EasedFloat();
 	public function discard() {
 		discarded = true;
 		vx = Math.random() * 100 - 50;
@@ -81,6 +92,22 @@ class SudokuBullet extends Entity {
 	function onHit() {
 		if (hit) return;
 		hit = true;
+
+		if (isMagic && hasValue(target.value)) {
+			for (i in 0...(1+state.board.rand.random(2))){
+				var t = state.board.getRandomFreeTile();
+				if (t != null) {
+					var b = new SudokuBullet(state.world, [t.value], false, false);
+					b.x = x;
+					b.y = y;
+					b.fireAt(t);
+					b.state = state;
+					b.onLanded = onLanded;
+					state.firedBullets.push(b);
+				}
+			}
+		}
+
 		onLanded(this);
 		Elk.instance.sounds.playWobble(hxd.Res.sound.slide, 0.2);
 	}
@@ -96,6 +123,9 @@ class SudokuBullet extends Entity {
 	override function tick(dt:Float) {
 		super.tick(dt);
 		lifeTime += dt;
+		if (small) {
+			wrapper.y = bounceT.value;
+		}
 		if (discarded) {
 			discardTime += dt;
 			vy += 30.3;
@@ -162,9 +192,17 @@ class SudokuBullet extends Entity {
 		for (i in 0...l) {
 			var s: Sprite;
 			if (!small) {
-				s = hxd.Res.img.sutile.toSprite(this);
+				if (!isMagic) {
+					s = hxd.Res.img.sutile.toSprite(wrapper);
+				} else {
+					s = hxd.Res.img.magictile.toSprite(wrapper);
+				}
 			} else {
-				s = hxd.Res.img.tilesmall.toSprite(this);
+				if (!isMagic) {
+					s = hxd.Res.img.tilesmall.toSprite(wrapper);
+				} else {
+					s = hxd.Res.img.magictilesmall.toSprite(wrapper);
+				}
 			}
 			s.x = sx;
 			s.y = sy + sih * i;
@@ -191,6 +229,9 @@ class SudokuBullet extends Entity {
 			t.text = '${vals[i]}';
 			t.y = Math.round((sih - t.textHeight) * 0.5);
 			t.textColor = 0x394a50;
+			if (isMagic) {
+				t.textColor = 0xdf84a5;
+			}
 			t.textAlign = Align.Center;
 			lbl = t;
 		}

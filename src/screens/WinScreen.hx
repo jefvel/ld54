@@ -34,7 +34,7 @@ class WinScreen extends Entity {
 		txt.text = "YOU WON";
 		txt.textAlign = Center;
 		txt.alpha = 0.0;
-		new Timeout(0.8, showProgress);
+		new Timeout(0.8, showTime);
 		timeTxt = new Text(hxd.Res.fonts.marumonica.toFont(), container);
 		timeTxt.text = "Time";
 		timeval = new Text(timeTxt.font,timeTxt);
@@ -45,11 +45,56 @@ class WinScreen extends Entity {
 		clickToReturn.textAlign = Center;
 		clickToReturn.alpha = 0;
 		clickToReturn.visible = false;
+		var s = SaveData.getCurrent();
+		if (s.bestTime < 0 || s.bestTime > state.time) {
+			s.bestTime = state.time;
+		}
+
+		s.wins ++;
+		
+		s.save();
 		new Timeout(1.5, () -> {
-			if (parent == null) return;
+			if (getScene() == null) return;
 			m = elk.Elk.instance.sounds.playMusic(hxd.Res.sound.winmusic, 0.4);
 		});
+
+		rankTxt = new Text(hxd.Res.fonts.gridgazer.toFont(), container);
+		rankTxt.textAlign = Center;
+		rankTxt.text = 'S+';
+		var minutes = Std.int(state.time / 60);
+		var r = 'F';
+		if (minutes <= 30) {
+			r = 'E';
+		}
+		if (minutes <= 25) {
+			r = 'D';
+		}
+		if (minutes <= 22) {
+			r = 'C';
+		}
+		if (minutes <= 20) {
+			r = 'B';
+		}
+		if (minutes < 18) {
+			r = 'A';
+		}
+		if (minutes <= 15) {
+			r = 'S';
+		}
+		if (minutes <= 10) {
+			r = 'S+';
+		}
+		rankTxt.text = r;
+		var sub  =new Text(hxd.Res.fonts.marumonica.toFont(), rankTxt);
+		sub.textAlign = Center;
+		sub.text = "RANK";
+		sub.y = rankTxt.textHeight + 2;
+		rankTxt.alpha = 0.0;
+
+		rankTxt.visible = false;
 	}
+	
+	var rankTxt: Text;
 	
 	function showProgress() {
 		bar = new BoostBar(this, state);
@@ -70,7 +115,8 @@ class WinScreen extends Entity {
 	function showTime() {
 		timevisibl = true;
 		new Timeout(0.2,() -> easedTime.value = state.time);
-		new Timeout(0.3, ()-> {
+		new Timeout(0.4, () -> rankTxt.visible = true);
+		new Timeout(1.0, ()-> {
 			clickToReturn.visible = true;
 			canLeave = true;
 		});
@@ -93,6 +139,11 @@ class WinScreen extends Entity {
 	override function tick(dt:Float) {
 		super.tick(dt);
 		txt.alpha += (1-txt.alpha) * 0.1;
+		
+		if (rankTxt.visible) {
+			rankTxt.alpha += (1-rankTxt.alpha) * 0.2;
+		}
+
 		if (bar != null) {
 			bar.alpha += (1-bar.alpha) * 0.2;
 		}
@@ -112,23 +163,22 @@ class WinScreen extends Entity {
 		txt.x = s.width * 0.5;
 		txt.y = s.height * 0.25 + (1 - txt.alpha) * 4.0;
 
-		if (bar != null){
-			bar.x = s.width * 0.5 - bar.width * 0.5;
-			bar.y = txt.y + 80 + (1 - bar.alpha) * 4.0;
-		}
-
 		if (timevisibl){
-			timeTxt.x = bar.x;
-			timeTxt.y = bar.y + 32 + (1 - timeTxt.alpha) * 4.0;
+			timeTxt.x = s.width * 0.5 - txt.textWidth * 0.5;
+			timeTxt.y = txt.y + 128 + (1 - timeTxt.alpha) * 4.0;
 			timeval.text = easedTime.value.toTimeString(true);
-			timeval.x = bar.width;
+			timeval.x = txt.textWidth;
+		}
+		
+		if (rankTxt.visible) {
+			rankTxt.x = s.width * 0.5;
+			rankTxt.y = txt.y + 52 + (1 - rankTxt.alpha) * 4.0;
 		}
 
 		if (clickToReturn.visible){
 			clickToReturn.x = s.width * 0.5;
 			clickToReturn.y = timeTxt.y + 48 + (1 - clickToReturn.alpha) * 4.0;
 		}
-		
 
 		if (Key.isPressed(Key.MOUSE_LEFT)) {
 			leave();

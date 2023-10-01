@@ -36,7 +36,7 @@ class Turret extends Actor {
 	}
 
 	var state: OverWorld;
-	var off = new EasedFloat(0, 0.4);
+	var off = new EasedFloat(0, 0.7);
 	public function new(?p, state) {
 		super(p);
 		off.easeFunction = M.elasticOut;

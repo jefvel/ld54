@@ -33,6 +33,19 @@ class MainMenu extends Entity {
 		
 		desc = new Text(hxd.Res.fonts.marumonica.toFont(), container);
 		desc.text = "A Sudoku game for the adventurous";
+		
+		var t = new Text(desc.font, desc);
+		t.text = "Click to Start";
+		t.y = 167;
+		t.x = 155;
+
+		var s = SaveData.getCurrent();
+		if (s.bestTime > 0) {
+			var tt = s.bestTime.toTimeString(true);
+			var t = new Text(desc.font, desc);
+			t.text = 'Personal Best\n${tt}';
+			t.y = 160;
+		}
 
 	}
 	

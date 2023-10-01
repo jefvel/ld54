@@ -40,7 +40,7 @@ class PlayState extends GameState {
 	var bgRect: Bitmap;
 	var container: Object;
 
-	var world: Object;
+	public var world: Object;
 	var seed: Int;
 	
 	public var man: Guy;
@@ -182,7 +182,7 @@ class PlayState extends GameState {
 		var f = board.getDigitsLeft();
 		rand.shuffle(f);
 		for (i in 0...3) {
-			bricks.addBrick(new SudokuBullet(world, [f[i]]));
+			bricks.addBrick(new SudokuBullet(world, [f[i]], false));
 		}
 		if (bricks.empty) {
 			startChecking();
@@ -212,7 +212,7 @@ class PlayState extends GameState {
 		var p = overworld.pickedUp;
 		game.sounds.playWobble(hxd.Res.sound.climbdown);
 		for (pik in p) {
-			var b = new SudokuBullet(world, pik.vals);
+			var b = new SudokuBullet(world, pik.vals, false, pik.isMagic);
 			bricks.addBrick(b);
 		}
 
@@ -341,7 +341,7 @@ class PlayState extends GameState {
 		}
 	}
 	
-	var firedBullets: Array<SudokuBullet> = [];
+	public var firedBullets: Array<SudokuBullet> = [];
 	var landedBullets = 0;
 	var checking = false;
 	var untilCheckNext = 0.5;
@@ -407,6 +407,9 @@ class PlayState extends GameState {
 
 				var b = 0.5 + correctTiles * 0.05;
 				turretBoost += b;
+				if (turretBoost > 6) {
+					turretBoost = 6;
+				}
 				boostBar.value = turretBoost;
 
 				cell.solve();

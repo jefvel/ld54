@@ -1,4 +1,6 @@
 package entities;
+import elk.M;
+import elk.util.EasedFloat;
 import elk.Elk;
 import hxd.Key;
 import h2d.RenderContext;
@@ -66,6 +68,8 @@ class OverWorld extends Entity {
 		objects.push(turret);
 		
 		ladder.button.onPush = e -> doReturn();
+		offX.easeFunction = M.elasticOut;
+		offY.easeFunction = M.elasticOut;
 	}
 	
 	var waveTime = 5.0;
@@ -124,8 +128,19 @@ class OverWorld extends Entity {
 		if (waveDuration < 3) waveDuration = 3;
 	}
 	
+	var offX = new EasedFloat(0, 0.5);
+	var offY = new EasedFloat(0, 0.5);
 	public function onHurt(e: Enemy) {
 		life -= e.revivePower * 4.0;
+		var dx = e.x - man.x;
+		var dy = e.y - man.y;
+		var l = Math.sqrt(dx * dx + dy * dy);
+		dx /= l;
+		dy /= l;
+		offX.setImmediate(dx * 4);
+		offY.setImmediate(dy * 4);
+		offX.value = 0;
+		offY.value = 0;
 	}
 	
 	public function onEnemyDie(e: Enemy) {
@@ -166,6 +181,14 @@ class OverWorld extends Entity {
 				}
 			}
 
+			var magic = false;
+			if (originalDropList.length < 27) {
+				if (rand.rand() < e.dropChance * 0.6 + extraDropChance) {
+					l = 1;
+					magic = true;
+				}
+			}
+
 			var vals = [];
 			for (i in 0...l) {
 				var v = getNextDigit();
@@ -183,7 +206,7 @@ class OverWorld extends Entity {
 				for(t in vals) toPutInFront.push(t);
 			}
 
-			var t = new SudokuBullet(world, vals, true);
+			var t = new SudokuBullet(world, vals, true, magic);
 			bulls.push(t);
 			t.x = e.x;
 			t.y = e.y - t.height * 0.5 - 3;
@@ -357,8 +380,8 @@ class OverWorld extends Entity {
 			spawnWave();
 		}
 
-		world.x = Math.round((s.width - width) * 0.5);
-		world.y = Math.round((s.height - height) * 0.5);
+		world.x = Math.round((s.width - width) * 0.5 + offX.value);
+		world.y = Math.round((s.height - height) * 0.5 + offY.value);
 		
 		var sx = 0.0;
 		var sy = 0.0 - 12;

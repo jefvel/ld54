@@ -49,6 +49,18 @@ class SudokuBoard extends Entity {
 		return grid[row * 9 + col] = val;
 	}
 	
+	public function getRandomFreeTile() {
+		var t = tiles.copy();
+		rand.shuffle(t);
+		for (ti in t) {
+			if (!ti.solved && ti.bullet == null) {
+				return ti;
+			}
+		}
+		
+		return null;
+	}
+	
 	var state: PlayState;
 	public function new(?p, state) {
 		super(p);
@@ -100,7 +112,7 @@ class SudokuBoard extends Entity {
 		return true;
 	}
 	
-	var rand: Rand;
+	public var rand: Rand;
 	public var padding = 8;
 	var container: Object;
 	public function getDigitsLeft(includePlacedBullets = false) {
