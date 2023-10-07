@@ -31,7 +31,6 @@ class PlayState extends GameState {
 	public var time = 0.;
 	var timeText: Text;
 	var tickRateTxt: Text;
-	var filt: hxd.snd.effect.Pitch;
 	
 	public var board: SudokuBoard;
 	var bricks: CollectedBullets;
@@ -49,7 +48,7 @@ class PlayState extends GameState {
 	public var ladder: Ladder;
 	public var boostBar: BoostBar;
 	
-	var aiming = false;
+	public var aiming = false;
 	var graphics:Graphics;
 	
 	public var overworld: OverWorld;
@@ -60,6 +59,14 @@ class PlayState extends GameState {
 	function onSelectBrick(brick: SudokuBullet) {
 		if (aiming) return;
 		man.selectedBrick = brick;
+		overBull = true;
+	}
+	
+	var overBull = false;
+
+	function onDeselectBrick(brick: SudokuBullet) {
+		//if (aiming) return;
+		overBull = false;
 	}
 	
 	var crosshair: ScaleGrid;
@@ -79,12 +86,13 @@ class PlayState extends GameState {
 		hoveredCell = cell;
 		game.sounds.playWobble(hxd.Res.sound.select2, 0.1);
 	}
+	
+	function onOutOfCell(cell: SudokuTile) {
+		
+	}
 
 	public function new(?seed:Int) {
 		super();
-		filt = new hxd.snd.effect.Pitch();
-		game.sounds.sfxChannel.addEffect(filt);
-		
 
 		seed = Std.int(Math.random() * 1000000);
 		if (seed == null){
@@ -110,7 +118,7 @@ class PlayState extends GameState {
 		// s2d.filter = new DropShadow(4, 0.785, 0, 1, 0, 1, 0);
 		
 		s2d.filter = new Nothing();
-		s2d.filter = new RetroFilter(0.05, 0.04, 0.1, 0.9);
+		s2d.filter = new RetroFilter(0.0, 0.04, 0.1, 1.0);
 
 		container = new Object(s2d);
 		bgRect = new Bitmap(Tile.fromColor(0x10141f), container);
@@ -127,6 +135,7 @@ class PlayState extends GameState {
 		board.x = 110;
 		board.y = 22;
 		board.onOverCell = onHoverCell;
+		board.onOutOfCell = onOutOfCell;
 		
 		ladder = new Ladder(world);
 		bricks = new CollectedBullets(world);
@@ -135,6 +144,7 @@ class PlayState extends GameState {
 		bricks.y = board.y - board.padding + 64;
 		bricks.x = board.x + board.width + 32;
 		bricks.onSelect = onSelectBrick;
+		bricks.onDeselect = onDeselectBrick;
 		
 		man.x = bricks.x + 64;
 		man.y = bricks.y + 32;
@@ -169,24 +179,33 @@ class PlayState extends GameState {
 		board.generate(seed);
 	}
 
+	var generationDone = false;
 	function onGenerated() {
 		if (started) return;
-		caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
-		overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
-		started = true;
-		generating = false;
-		wscl.value = 1.0;
-		lookRatio.value = 1.0;
-		mainMenu.close();
-		
-		var f = board.getDigitsLeft();
-		rand.shuffle(f);
-		for (i in 0...3) {
-			bricks.addBrick(new SudokuBullet(world, [f[i]], false));
-		}
-		if (bricks.empty) {
-			startChecking();
-		}
+		if (generationDone) return;
+
+		generationDone = true;
+
+		new Timeout(0.15, () -> {
+			caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
+			overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
+			started = true;
+			generating = false;
+			wscl.value = 1.0;
+			lookRatio.value = 1.0;
+			mainMenu.close();
+
+			board.makeAppear();
+			
+			var f = board.getDigitsLeft();
+			rand.shuffle(f);
+			for (i in 0...3) {
+				bricks.addBrick(new SudokuBullet(world, [f[i]], false));
+			}
+			if (bricks.empty) {
+				startChecking();
+			}
+		});
 	}
 	
 	var overGroundTime = 0.0;
@@ -299,7 +318,7 @@ class PlayState extends GameState {
 				crosshairY.value = pos.y + 16 - v * 0.5;
 
 				crosshair.width = v;
-				crosshair.height = v;
+				crosshair.height = v - 1;
 			} else {
 				crosshairWidth.value = 32;
 				var v = crosshairWidth.value;
@@ -329,8 +348,10 @@ class PlayState extends GameState {
 	
 	function stopAiming() {
 		hoveredCell = null;
-		man.selectedBrick = null;
-		aiming = false;
+		if (!overBull) {
+			man.selectedBrick = null;
+			aiming = false;
+		}
 	}
 	
 	function startAiming() {
@@ -402,7 +423,26 @@ class PlayState extends GameState {
 			var correct = b.hasValue(cell.value);
 			if (correct) {
 				board.setVal(cell.row, cell.col, cell.value);
-				game.sounds.playSoundPitch(hxd.Res.sound.goodhit, 0.3, 1.0 + correctTiles * 0.25);
+				var vols = [
+					0.4,
+					0.45,
+					0.5,
+					0.53,
+				];
+				var sounds = [
+					hxd.Res.sound.goodhit,
+					hxd.Res.sound.goodhit2,
+					hxd.Res.sound.goodhit3,
+					hxd.Res.sound.goodhit4,
+				];
+
+				var perSound = 3;
+				var i = Std.int(correctTiles / perSound);
+				if (i >= sounds.length) i = sounds.length - 1;
+				var sound = sounds[i];
+				var pitch = correctTiles - i * perSound;
+
+				game.sounds.playSoundPitch(sound, vols[i], 1.0 + pitch * 0.25);
 				correctTiles ++;
 
 				var b = 0.5 + correctTiles * 0.05;
@@ -453,7 +493,7 @@ class PlayState extends GameState {
 			c.flash();
 			game.sounds.playWobble(hxd.Res.sound.winboom);
 		}
-		new Timeout(1.5, _showWin);
+		new Timeout(2.0, _showWin);
 	}
 	var winScreen: WinScreen;
 	function _showWin() {

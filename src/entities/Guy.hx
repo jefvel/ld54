@@ -146,11 +146,16 @@ class Guy extends Entity {
 		if (kicking) {
 			return;
 		}
+		
 
 		if (l > 0.4) {
 			sprite.animation.play("walk");
 		} else {
-			sprite.animation.play("idle");
+			if (state.aiming) {
+				sprite.animation.play("aiming");
+			} else {
+				sprite.animation.play("idle");
+			}
 		}
 	}
 }

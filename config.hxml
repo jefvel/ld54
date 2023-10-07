@@ -3,7 +3,7 @@
 ###
 
 ## Window
--D windowTitle=LD 54
+-D windowTitle=Bill's Cave of Numbers
 -D windowSize=1280x720
 # Sets the default color of the scene + html background
 -D backgroundColor=#202e37
@@ -30,9 +30,9 @@
 -D ogImage=https://link.to.your.img/photo.png
 
 ## Newgrounds stuff
--D newgroundsAppId=Enter your app ID here
+-D newgroundsAppId=57099:TCRorJK4
 # AES-128 Encryption key required
--D newgroundsEncryptionKey=Enter your AES-128(base64) encryption key here
+-D newgroundsEncryptionKey=1DJgdtfHhka+74Vd6ai6hQ==
 
 ## Etc
 # Uncomment and set if your Aseprite installation is not in the default path

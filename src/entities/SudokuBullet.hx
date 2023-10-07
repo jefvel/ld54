@@ -17,6 +17,8 @@ class SudokuBullet extends Entity {
 	public var small = false;
 	public var isMagic = false;
 	var wrapper: Object;
+	var bounceT = new EasedFloat();
+	var rotationResetT = new EasedFloat(0, 0.22);
 	public function new(?p, vals: Array<Int>, small = false, isMagic = false) {
 		super(p);
 		this.isMagic = isMagic;
@@ -33,12 +35,15 @@ class SudokuBullet extends Entity {
 			bounceT.setImmediate(-5);
 			bounceT.value = 0.0;
 		}
+		
+		rotationResetT.easeFunction = M.elasticOut;
 	}
 
 	public var height = 32.0;
 	public var width = 32.0;
 	
 	public var onSelect: SudokuBullet -> Void;
+	public var onDeselect: SudokuBullet -> Void;
 	
 	public var target: SudokuTile;
 	var startX = 0.0;
@@ -75,7 +80,6 @@ class SudokuBullet extends Entity {
 	
 	public var discarded = false;
 	var discardTime = 0.0;
-	var bounceT = new EasedFloat();
 	public function discard() {
 		discarded = true;
 		vx = Math.random() * 100 - 50;
@@ -107,6 +111,13 @@ class SudokuBullet extends Entity {
 				}
 			}
 		}
+
+		bounceT.easeTime = 0.3;
+		bounceT.setImmediate(-5);
+		bounceT.value = 0;
+		
+		rotationResetT.setImmediate(0.angleBetween(rotation));
+		rotationResetT.value = 0.0;
 
 		onLanded(this);
 		Elk.instance.sounds.playWobble(hxd.Res.sound.slide, 0.2);
@@ -145,7 +156,7 @@ class SudokuBullet extends Entity {
 			popped = true;
 		}
 		if (hit) {
-			rotation *= 0.6;
+			rotation = rotationResetT.value;
 			for (s in sps) {
 				s.y += (-16 - s.y) * 0.4;
 				s.animation.currentFrameIndex = 0;
@@ -159,12 +170,13 @@ class SudokuBullet extends Entity {
 				//lbl.text = '${vals[ind]}';
 			}
 			x += (targetX - x) * 0.9;
-			y += (targetY + state.board.offYEase.value - y) * 0.9;
+			y += (targetY - 3 + state.board.offYEase.value - y) * 0.9;
+			y += bounceT.value;
 			return;
 		}
+
 		if (fired) {
 			rotation += rv;
-			rotation %= Math.PI * 2;
 			rv *= 0.92;
 			var dx = targetX - startX;
 			var dy = targetY - startY;
@@ -188,7 +200,11 @@ class SudokuBullet extends Entity {
 		var sx = -totalWidth * 0.5; 
 		var sy = -totalHeight * 0.5;
 		var l = vals.length;
-		var font = hxd.Res.fonts.marumonica.toFont();
+		var font = switch(small) {
+			case true: hxd.Res.fonts.marumonica.toFont();
+			case false: hxd.Res.fonts.futilepro_medium_12.toFont();
+		}
+
 		for (i in 0...l) {
 			var s: Sprite;
 			if (!small) {
@@ -243,6 +259,10 @@ class SudokuBullet extends Entity {
 		button.onOver = e -> { 
 			if (fired) return;
 			if (onSelect != null) onSelect(this);
+		};
+		button.onOut = e -> { 
+			if (fired) return;
+			if (onDeselect != null) onDeselect(this);
 		};
 		button.onPush = e -> {
 			if (onPress != null) {

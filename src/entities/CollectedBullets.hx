@@ -9,6 +9,7 @@ class CollectedBullets extends Entity {
 	public var bricks:Array<SudokuBullet> = [];
 
 	public var onSelect:SudokuBullet -> Void;
+	public var onDeselect:SudokuBullet -> Void;
 	
 	public var empty(get, null): Bool;
 	function get_empty(){
@@ -19,7 +20,7 @@ class CollectedBullets extends Entity {
 		super(p);
 
 
-		addRandomBrick();
+		// addRandomBrick();
 		/*
 		addRandomBrick();
 		addRandomBrick();
@@ -65,12 +66,17 @@ class CollectedBullets extends Entity {
 		onSelect(b);
 	}
 	
+	function onDeselectBullet(b: SudokuBullet) {
+		onDeselect(b);
+	}
+	
 	public function removeBullet(b) {
 		bricks.remove(b);
 	}
 	
 	public function addBrick(b: SudokuBullet) {
 		b.onSelect = onSelectedBullet;
+		b.onDeselect = onDeselectBullet;
 		parent.addChild(b);
 		bricks.push(b);
 	}

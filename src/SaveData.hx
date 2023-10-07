@@ -5,4 +5,5 @@ class SaveData extends elk.GameSaveData {
 	public var dailyScore = 0.0;
 	public var previousDaySeed: Int = -1;
 	public var bestTime: Float = -1;
+	public var coins = 0;
 }

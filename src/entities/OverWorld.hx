@@ -19,6 +19,7 @@ import elk.entity.Entity;
 class OverWorld extends Entity {
 	public var width = 1280 >> 1;
 	public var height = 720 >> 1;
+
 	public var world: Layers;
 	public var ladder: LilLadder;
 	public var turret: Turret;
@@ -36,11 +37,13 @@ class OverWorld extends Entity {
 	public var state: PlayState;
 	var seed: Int;
 	var rand: Rand;
+	var dropRand: Rand;
 	var dropList: Array<Int>;
 	var originalDropList: Array<Int>;
 	public function new(?p,state, seed) {
 		super(p);
 		rand = new Rand(seed);
+		dropRand = new Rand(rand.random(0xffffffff));
 		dropList = [];
 		originalDropList = dropList.copy();
 		this.seed = seed;
@@ -167,23 +170,26 @@ class OverWorld extends Entity {
 		var extraDropChance = 0.0;
 		extraDropChance += state.extraDropChanceUpgrades * 0.02;
 
-		if (rand.rand() < e.dropChance + extraDropChance) {
+		if (dropRand.rand() < e.dropChance + extraDropChance) {
 			var l = 1;
 			if (originalDropList.length > 19) {
-				if (rand.rand() > 0.8) {
+				if (dropRand.rand() > 0.8) {
 					l = 2;
-					if (rand.rand() > 0.6) {
+					if (dropRand.rand() > 0.6) {
 						l = 3;
 					}
-					if (rand.rand() > 0.8) {
+					if (dropRand.rand() > 0.8) {
 						l = 4;
 					}
 				}
 			}
 
 			var magic = false;
-			if (originalDropList.length < 27) {
-				if (rand.rand() < e.dropChance * 0.6 + extraDropChance) {
+			if (state.extraDropChanceUpgrades > 0 || state.extraFireRateUpgrades > 0 || state.extraLifeUpgrades > 0) {
+				if (dropRand.rand() < e.dropChance * 0.5) {
+					l = 1;
+					magic = true;
+				} else if (originalDropList.length < 20 && dropRand.rand() < e.dropChance * 0.7) {
 					l = 1;
 					magic = true;
 				}
@@ -225,8 +231,8 @@ class OverWorld extends Entity {
 			d = dropList.shift();
 			if (dropList.length == 0) {
 				dropList = originalDropList;
-				rand.shuffle(dropList);
-				rand.shuffle(toPutInFront);
+				dropRand.shuffle(dropList);
+				dropRand.shuffle(toPutInFront);
 				for (t in toPutInFront) {
 					dropList.remove(t);
 					dropList.insert(0, t);
@@ -234,7 +240,7 @@ class OverWorld extends Entity {
 				originalDropList = dropList.copy();
 			}
 		} else {
-			d = rand.random(9) + 1;
+			d = dropRand.random(9) + 1;
 		}
 
 		return d;
@@ -273,7 +279,7 @@ class OverWorld extends Entity {
 		enemies = [];
 		toPutInFront = [];
 		dropList = state.board.getDigitsLeft();
-		rand.shuffle(dropList);
+		dropRand.shuffle(dropList);
 		originalDropList = dropList.copy();
 
 		objects.push(man);
@@ -375,6 +381,7 @@ class OverWorld extends Entity {
 		if (enemies.length <= 1) {
 			waveTimeSpeedUp = 10.0;
 		}
+
 		waveTime += dt * waveTimeSpeedUp;
 		if (waveTime > waveDuration) {
 			spawnWave();

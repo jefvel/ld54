@@ -34,20 +34,20 @@ class MainMenu extends Entity {
 		desc = new Text(hxd.Res.fonts.marumonica.toFont(), container);
 		desc.text = "A Sudoku game for the adventurous";
 		
-		var t = new Text(desc.font, desc);
-		t.text = "Click to Start";
-		t.y = 167;
-		t.x = 155;
+		stext = new Text(hxd.Res.fonts.marumonica.toFont(), container);
+		stext.text = "Click to Start";
 
 		var s = SaveData.getCurrent();
 		if (s.bestTime > 0) {
 			var tt = s.bestTime.toTimeString(true);
-			var t = new Text(desc.font, desc);
-			t.text = 'Personal Best\n${tt}';
-			t.y = 160;
+			var ti = new Text(desc.font, container);
+			ti.text = 'Personal Best\n${tt}';
+			sbest = ti;
 		}
-
 	}
+
+	var sbest: Text;
+	var stext:Text;
 	
 	var closing = false;
 	public function close() {
@@ -60,6 +60,12 @@ class MainMenu extends Entity {
 		super.tick(dt);
 		t += dt;
 		desc.y = title.y + 80;
+		stext.y = 167 + desc.y;
+		stext.x = 155 + desc.x;
+		if (sbest != null) {
+			sbest.y = 160 + desc.y;
+			sbest.x = desc.x;
+		}
 		if (closing) {
 			alpha *= 0.5;
 			if (alpha < 0.1) {

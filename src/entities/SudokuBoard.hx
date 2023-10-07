@@ -208,7 +208,7 @@ class SudokuBoard extends Entity {
 	var tileSize = 34;
 	
 	public function nudge() {
-		offYEase.setImmediate(7);
+		offYEase.setImmediate(4);
 		offYEase.value = 0.0;
 	}
 	
@@ -218,9 +218,18 @@ class SudokuBoard extends Entity {
 	}
 	
 	public var onOverCell: SudokuTile -> Void;
+	public var onOutOfCell: SudokuTile -> Void;
+	
+	public function makeAppear() {
+		for (t in tiles) t.appear();
+	}
 
 	function onHoverCell(cell: SudokuTile) {
 		if (onOverCell != null) onOverCell(cell);
+	}
+	
+	function onOutCell(cell: SudokuTile) {
+		if (onOutOfCell != null) onOutOfCell(cell);
 	}
 
 	function shuffleNumbers() {
@@ -347,7 +356,6 @@ class SudokuBoard extends Entity {
 		
 		rand.shuffle(unremoved);
 		var extraRemovals = Std.int(Math.min(unremoved.length, 1));
-		trace(extraRemovals);
 		for (i in 0...extraRemovals) {
 			grid[unremoved[i]] = -1;
 		}

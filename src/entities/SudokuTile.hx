@@ -29,10 +29,18 @@ class SudokuTile extends Entity {
 
 	public var triedValues:Map<Int, Bool> = new Map();
 	public var state: PlayState;
+	
+	var container: Object;
+
 	var cross: Bitmap;
+	var appearSpeed = 0.0;
 
 	public function new(?p, value, presolved = false, row, col, state) {
 		super(p);
+		alpha = -5;
+		appearSpeed = 0.03 + row * 0.01 + col * 0.005;
+		container = new Object(this);
+
 		this.state = state;
 		this.presolved = presolved;
 		this.solved = presolved;
@@ -41,11 +49,17 @@ class SudokuTile extends Entity {
 		this.col = col;
 		this.cellID = row * 9 + col;
 		
-		sprite = hxd.Res.img.sudokutile.toSprite(this);
-		text = new Text(hxd.Res.fonts.marumonica.toFont(), this);
+		sprite = hxd.Res.img.sudokutile.toSprite(container);
+		text = new Text(hxd.Res.fonts.futilepro_medium_12.toFont(), container);
 		text.textAlign = Align.Center;
+		text.dropShadow = {
+			dy: -1,
+			dx: 0, 
+			alpha: 0.5,
+			color: 0x202e37,
+		}
 
-		button = new Interactive(40, 40, this);
+		button = new Interactive(40, 40, container);
 		button.onOver = e -> {
 			onOver(this);
 		}
@@ -54,9 +68,15 @@ class SudokuTile extends Entity {
 		button.y = -4;
 		button.cursor = Default;
 		updateSprite();
-		cross = new Bitmap(hxd.Res.img.cross.toTile(), this);
+		cross = new Bitmap(hxd.Res.img.cross.toTile(), container);
 		cross.y = -2;
+		cross.tile.dx = cross.tile.dy = -16;
 		cross.visible = false;
+	}
+	
+	var appearing = false;
+	public function appear() {
+		appearing = true;
 	}
 	
 	public function solve() {
@@ -97,6 +117,16 @@ class SudokuTile extends Entity {
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+		if (appearing) {
+			alpha += dt / appearSpeed;
+			if (alpha > 1) {
+				alpha = 1;
+				appearing = false;
+			}
+		}
+		
+		container.y = -(1 - alpha) * 4;
+
 		flashCol -= dt * 2.0;
 		flashCol = Math.max(0.0, flashCol);
 		var c = 1.0 + flashCol * 10.0;
@@ -126,6 +156,7 @@ class SudokuTile extends Entity {
 			text.visible = Key.isDown(Key.SHIFT);
 		}
 		#end
+		text.y = Math.round((32 - text.textHeight) * 0.5);
 	}
 	
 	public function updateSprite() {
