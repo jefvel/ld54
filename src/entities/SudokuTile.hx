@@ -37,8 +37,8 @@ class SudokuTile extends Entity {
 
 	public function new(?p, value, presolved = false, row, col, state) {
 		super(p);
-		alpha = -5;
-		appearSpeed = 0.03 + row * 0.01 + col * 0.005;
+		alpha = -6;
+		appearSpeed = 0.01 + row * 0.01 + col * 0.005;
 		container = new Object(this);
 
 		this.state = state;

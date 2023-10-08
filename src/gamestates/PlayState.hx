@@ -1,5 +1,6 @@
 package gamestates;
 
+import entities.XpOrb;
 import screens.WinScreen;
 import hxd.Rand;
 import screens.MainMenu;
@@ -40,7 +41,7 @@ class PlayState extends GameState {
 	var container: Object;
 
 	public var world: Object;
-	var seed: Int;
+	public var seed: Int;
 	
 	public var man: Guy;
 	// var selectedBrick: SudokuBullet;
@@ -94,7 +95,7 @@ class PlayState extends GameState {
 	public function new(?seed:Int) {
 		super();
 
-		seed = Std.int(Math.random() * 1000000);
+		// seed = Std.int(Math.random() * 1000000);
 		if (seed == null){
 			var d = Date.now();
 			this.seed = ((d.getFullYear() - 2023) * 500) + (d.getMonth() * 40) + d.getDay();
@@ -414,7 +415,7 @@ class PlayState extends GameState {
 	}
 	
 	var correctTiles = 0;
-	var turretBoost = 0.0;
+	public var turretBoost = 0.0;
 	function checkNext() {
 		untilCheckNext = 0.07;
 		if (firedBullets.length > 0) {
@@ -430,7 +431,7 @@ class PlayState extends GameState {
 					0.53,
 				];
 				var sounds = [
-					hxd.Res.sound.goodhit,
+					hxd.Res.sound.goodhit1,
 					hxd.Res.sound.goodhit2,
 					hxd.Res.sound.goodhit3,
 					hxd.Res.sound.goodhit4,
@@ -445,12 +446,15 @@ class PlayState extends GameState {
 				game.sounds.playSoundPitch(sound, vols[i], 1.0 + pitch * 0.25);
 				correctTiles ++;
 
-				var b = 0.5 + correctTiles * 0.05;
-				turretBoost += b;
-				if (turretBoost > 6) {
-					turretBoost = 6;
+				var bval = 0.5 + correctTiles * 0.05;
+				var orbs = 1 + Std.int(correctTiles / 3);
+
+				for (i in 0...orbs) {
+					var orb = new XpOrb(world, this, bval / orbs);
+					orb.x = b.x + Math.random() * 10 - 5;
+					orb.y = b.y + Math.random() * 10 - 5;
 				}
-				boostBar.value = turretBoost;
+
 
 				cell.solve();
 				board.nudge();

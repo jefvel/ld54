@@ -1,5 +1,7 @@
 package entities;
 
+import h3d.Vector;
+import h2d.Object;
 import h2d.Tile;
 import h2d.Bitmap;
 import elk.M;
@@ -24,23 +26,48 @@ class BoostBar extends Entity {
 		0xebede9,
 	];
 
+	var glow: ScaleGrid;
+	var glowPad = 16;
 	var bars: Array<Bitmap> = [];
 	public var value(default, set) = 0.0;
-	var boostEase = new EasedFloat(0, 0.4);
+	var boostEase = new EasedFloat(0, 0.6);
+	
+	var ox = 0.0;
+	var oy = 0.0;
+	var vox = 0.0;
+	var voy = 0.0;
+	var aoy = 0.0;
+	var aox = 0.0;
+
+	var container: Object;
+	public function nudge(dx = 0.0, dy = -1.0) {
+		ox += dx * 0.005;
+		oy += dy * 0.005;
+		glow.alpha += 2.0;
+	}
 
 	public function new(?p, state: PlayState) {
 		super(p);
+		container = new Object(this);
 
 		boostEase.easeFunction = M.elasticOut;
 
 		this.state = state;
+		
+		glow = new ScaleGrid(hxd.Res.img.blurrect.toTile(), 24,24,24,24, container);
+		glow.x = glow.y = - glowPad;
+		glow.alpha = 0.0;
+		glow.color = Vector.fromColor(barColors[1]);
+		glow.color.a = 1.0;
 
-		frame = new ScaleGrid(hxd.Res.img.boostbarframe.toTile(),2,2, 4, 2, this);
+		frame = new ScaleGrid(hxd.Res.img.boostbarframe.toTile(),2,2, 4, 2, container);
 		for (c in barColors) {
 			var b = new Bitmap(Tile.fromColor(c), frame);
 			b.x = b.y = padding;
 			bars.push(b);
 		}
+		
+		nudge(Math.random() * 100 - 50, Math.random() * 100 - 50);
 	}
 	
 	var padding = 2.0;
@@ -52,6 +79,28 @@ class BoostBar extends Entity {
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+
+		glow.alpha *= 0.9;
+
+		glow.width = width + glowPad * 2;
+		glow.height = height + glowPad * 2;
+		ox += vox;
+		oy += voy;
+
+		aox += -ox * 0.3;
+		aoy += -oy * 0.3;
+
+		vox += aox;
+		voy += aoy;
+
+		aox *= 0.7;
+		aoy *= 0.7;
+		
+		vox *= 0.36;
+		voy *= 0.36;
+
+		container.x = ox;
+		container.y = oy;
 
 		frame.width = width;
 		frame.height = height;

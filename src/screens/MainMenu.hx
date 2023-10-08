@@ -83,7 +83,7 @@ class MainMenu extends Entity {
 
 		if (Key.isPressed(Key.MOUSE_LEFT)) {
 			started = true;
-			state.start(Std.int(Math.random() * 50000000));
+			state.start(state.seed);// Std.int(Math.random() * 50000000));
 		}
 	}
 }
