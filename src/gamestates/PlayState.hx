@@ -30,73 +30,76 @@ import elk.gamestate.GameState;
 
 class PlayState extends GameState {
 	public var time = 0.;
-	var timeText: Text;
-	var tickRateTxt: Text;
-	
-	public var board: SudokuBoard;
-	var bricks: CollectedBullets;
-	
-	var bg: Interactive;
-	var bgRect: Bitmap;
-	var container: Object;
 
-	public var world: Object;
-	public var seed: Int;
-	
-	public var man: Guy;
+	var timeText:Text;
+	var tickRateTxt:Text;
+
+	public var board:SudokuBoard;
+
+	var bricks:CollectedBullets;
+
+	var bg:Interactive;
+	var bgRect:Bitmap;
+	var container:Object;
+
+	public var world:Object;
+	public var seed:Int;
+
+	public var man:Guy;
+
 	// var selectedBrick: SudokuBullet;
-	
-	public var ladder: Ladder;
-	public var boostBar: BoostBar;
-	
-	public var aiming = false;
-	var graphics:Graphics;
-	
-	public var overworld: OverWorld;
-	
-	var caveMusic: hxd.snd.Channel;
-	var overworldMusic: hxd.snd.Channel;
+	public var ladder:Ladder;
+	public var boostBar:BoostBar;
 
-	function onSelectBrick(brick: SudokuBullet) {
-		if (aiming) return;
+	public var aiming = false;
+
+	var graphics:Graphics;
+
+	public var overworld:OverWorld;
+
+	var caveMusic:hxd.snd.Channel;
+	var overworldMusic:hxd.snd.Channel;
+
+	function onSelectBrick(brick:SudokuBullet) {
+		if (aiming)
+			return;
 		man.selectedBrick = brick;
 		overBull = true;
 	}
-	
+
 	var overBull = false;
 
-	function onDeselectBrick(brick: SudokuBullet) {
-		//if (aiming) return;
+	function onDeselectBrick(brick:SudokuBullet) {
+		// if (aiming) return;
 		overBull = false;
 	}
-	
-	var crosshair: ScaleGrid;
-	var hoveredCell: SudokuTile;
-	
+
+	var crosshair:ScaleGrid;
+	var hoveredCell:SudokuTile;
+
 	public var isDailyChallenge = false;
 
-	function onHoverCell(cell: SudokuTile) {
-		if (!aiming) return;
+	function onHoverCell(cell:SudokuTile) {
+		if (!aiming)
+			return;
 		if (cell == null) {
 			hoveredCell = null;
 		} else if (cell.solved || cell.bullet != null) {
 			hoveredCell = null;
 			return;
 		}
-		
+
 		hoveredCell = cell;
 		game.sounds.playWobble(hxd.Res.sound.select2, 0.1);
 	}
-	
-	function onOutOfCell(cell: SudokuTile) {
-		
-	}
+
+	function onOutOfCell(cell:SudokuTile) {}
 
 	public function new(?seed:Int) {
 		super();
 
 		// seed = Std.int(Math.random() * 1000000);
-		if (seed == null){
+		if (seed == null) {
 			var d = Date.now();
 			this.seed = ((d.getFullYear() - 2023) * 500) + (d.getMonth() * 40) + d.getDay();
 		} else {
@@ -105,60 +108,60 @@ class PlayState extends GameState {
 		crosshairX.easeFunction = M.elasticOut;
 		crosshairY.easeFunction = M.elasticOut;
 	}
-	
-	
+
 	public var started = false;
+
 	override function onEnter() {
 		super.onEnter();
-		
-		//sy.easeFunction = elk.T.elasticOut;
+
+		// sy.easeFunction = elk.T.elasticOut;
 
 		tickRateTxt = new Text(hxd.Res.fonts.marumonica.toFont(), s2d);
 		tickRateTxt.textColor = 0xffffff;
-		
+
 		// s2d.filter = new DropShadow(4, 0.785, 0, 1, 0, 1, 0);
-		
+
 		s2d.filter = new Nothing();
-		s2d.filter = new RetroFilter(0.0, 0.04, 0.1, 1.0);
+		s2d.filter = new RetroFilter(0.0, 0.04, 0.07, 1.0);
 
 		container = new Object(s2d);
 		bgRect = new Bitmap(Tile.fromColor(0x10141f), container);
 		bg = new Interactive(1, 1, container);
 		bg.cursor = Default;
-		bg.onOver = (e) ->{
+		bg.onOver = (e) -> {
 			onSelectBrick(null);
 			onHoverCell(null);
 		}
 
 		world = new Object(container);
 		board = new SudokuBoard(world, this);
-		
+
 		board.x = 110;
 		board.y = 22;
 		board.onOverCell = onHoverCell;
 		board.onOutOfCell = onOutOfCell;
-		
+
 		ladder = new Ladder(world);
 		bricks = new CollectedBullets(world);
 		man = new Guy(world, this);
-		
+
 		bricks.y = board.y - board.padding + 64;
 		bricks.x = board.x + board.width + 32;
 		bricks.onSelect = onSelectBrick;
 		bricks.onDeselect = onDeselectBrick;
-		
+
 		man.x = bricks.x + 64;
 		man.y = bricks.y + 32;
-		
+
 		ladder.x = bricks.x + 20;
 		ladder.y = man.y - 56;
 		ladder.onPush = goOverGround;
 
 		graphics = new Graphics(world);
-		crosshair = new ScaleGrid(hxd.Res.img.crosshair.toTile(), 16,16, 16, 16, world);
-		
+		crosshair = new ScaleGrid(hxd.Res.img.crosshair.toTile(), 16, 16, 16, 16, world);
+
 		overworld = new OverWorld(container, this, this.seed);
-		
+
 		timeText = new Text(hxd.Res.fonts.marumonica.toFont(), container);
 		timeText.alpha = 0;
 		extraBonusText = new Text(hxd.Res.fonts.marumonica.toFont(), timeText);
@@ -167,23 +170,27 @@ class PlayState extends GameState {
 		boostBar.alpha = 0;
 		mainMenu = new MainMenu(container, this);
 	}
-	
-	public var mainMenu: MainMenu;
 
+	public var mainMenu:MainMenu;
 
 	var generating = false;
-	var rand: Rand;
-	public function start(seed: Int) {
-		if (generating || started) return;
+	var rand:Rand;
+
+	public function start(seed:Int) {
+		if (generating || started)
+			return;
 		rand = new Rand(seed + 2);
 		generating = true;
 		board.generate(seed);
 	}
 
 	var generationDone = false;
+
 	function onGenerated() {
-		if (started) return;
-		if (generationDone) return;
+		if (started)
+			return;
+		if (generationDone)
+			return;
 
 		generationDone = true;
 
@@ -197,7 +204,7 @@ class PlayState extends GameState {
 			mainMenu.close();
 
 			board.makeAppear();
-			
+
 			var f = board.getDigitsLeft();
 			rand.shuffle(f);
 			for (i in 0...3) {
@@ -208,10 +215,11 @@ class PlayState extends GameState {
 			}
 		});
 	}
-	
+
 	var overGroundTime = 0.0;
 	var overGround = false;
 	var checked = false;
+
 	function goOverGround() {
 		overGround = true;
 		overGroundTime = 0.0;
@@ -221,7 +229,7 @@ class PlayState extends GameState {
 		overworldMusic.fadeTo(0.2, 0.2);
 		caveMusic.fadeTo(0.0, 0.2);
 	}
-	
+
 	public function finishOverGround() {
 		overGround = false;
 		checked = false;
@@ -242,15 +250,15 @@ class PlayState extends GameState {
 			startChecking();
 		}
 	}
-	
+
 	var overworldMusicOn = false;
-	
+
 	override function onRemove() {
 		container.remove();
 		super.onRemove();
 		stopMusic();
 	}
-	
+
 	function updateCamBounds() {
 		if (game.s3d.camera.orthoBounds == null) {
 			return;
@@ -268,30 +276,30 @@ class PlayState extends GameState {
 
 		game.s3d.camera.update();
 	}
-	
-	
+
 	var crosshairAlpha = new EasedFloat();
 	var crosshairWidth = new EasedFloat(16.0, 0.4);
 	var crosshairX = new EasedFloat();
 	var crosshairY = new EasedFloat();
+
 	override function tick(dt:Float) {
 		super.tick(dt);
 		if (!started && generating) {
 			onGenerated();
 		}
 
-		if (overGround){
- 			if (man.onLadder) {
+		if (overGround) {
+			if (man.onLadder) {
 				overGroundTime += dt;
 			}
-			if (overGroundTime > 0.5){
+			if (overGroundTime > 0.5) {
 				world.alpha *= 0.8;
 			}
 		} else {
 			world.alpha += (1 - world.alpha) * 0.1;
 			discardUnusableBricks();
 		}
-		
+
 		if (overGround && overworld.running && !overworldMusicOn) {
 			caveMusic.fadeTo(0.0, 0.2);
 			overworldMusic.fadeTo(0.3, 0.2);
@@ -331,7 +339,6 @@ class PlayState extends GameState {
 			crosshairAlpha.value = 0.0;
 		}
 	}
-	
 
 	function doKick() {
 		var selectedBrick = man.selectedBrick;
@@ -346,7 +353,7 @@ class PlayState extends GameState {
 
 		stopAiming();
 	}
-	
+
 	function stopAiming() {
 		hoveredCell = null;
 		if (!overBull) {
@@ -354,7 +361,7 @@ class PlayState extends GameState {
 			aiming = false;
 		}
 	}
-	
+
 	function startAiming() {
 		if (man.selectedBrick != null) {
 			aiming = true;
@@ -362,33 +369,35 @@ class PlayState extends GameState {
 			world.addChild(crosshair);
 		}
 	}
-	
-	public var firedBullets: Array<SudokuBullet> = [];
+
+	public var firedBullets:Array<SudokuBullet> = [];
+
 	var landedBullets = 0;
 	var checking = false;
 	var untilCheckNext = 0.5;
-	function onLand(bull: SudokuBullet) {
-		landedBullets ++;
+
+	function onLand(bull:SudokuBullet) {
+		landedBullets++;
 		board.nudge();
-		if (bricks.empty && landedBullets >= firedBullets.length) {
-		}
+		if (bricks.empty && landedBullets >= firedBullets.length) {}
 	}
-	
-	function startChecking(){
-		if (checking || checked) return;
+
+	function startChecking() {
+		if (checking || checked)
+			return;
 		checking = true;
 		correctTiles = 0;
 		untilCheckNext = 1.0;
 		turretBoost = overworld.turret.boost;
 	}
-	
-	function onCellClear(cell: SudokuTile) {
+
+	function onCellClear(cell:SudokuTile) {
 		if (board.isRowClear(cell.row)) {
 			for (c in 0...9) {
 				board.getTileAt(cell.row, c).flash();
 			}
 
-			extraFireRateUpgrades ++;
+			extraFireRateUpgrades++;
 			overworld.turret.firerateMultiplier += 0.08;
 		}
 
@@ -397,7 +406,7 @@ class PlayState extends GameState {
 				board.getTileAt(c, cell.col).flash();
 			}
 
-			extraDropChanceUpgrades ++;
+			extraDropChanceUpgrades++;
 		}
 
 		if (board.isBlockClear(cell.row, cell.col)) {
@@ -408,14 +417,15 @@ class PlayState extends GameState {
 					board.getTileAt(sy * 3 + r, sx * 3 + c).flash();
 				}
 			}
-			
-			extraLifeUpgrades ++;
 
+			extraLifeUpgrades++;
 		}
 	}
-	
+
 	var correctTiles = 0;
+
 	public var turretBoost = 0.0;
+
 	function checkNext() {
 		untilCheckNext = 0.07;
 		if (firedBullets.length > 0) {
@@ -424,43 +434,38 @@ class PlayState extends GameState {
 			var correct = b.hasValue(cell.value);
 			if (correct) {
 				board.setVal(cell.row, cell.col, cell.value);
-				var vols = [
-					0.4,
-					0.45,
-					0.5,
-					0.53,
-				];
+				var vols = [0.3, 0.4, 0.45, 0.5, 0.53,];
 				var sounds = [
 					hxd.Res.sound.goodhit1,
 					hxd.Res.sound.goodhit2,
 					hxd.Res.sound.goodhit3,
 					hxd.Res.sound.goodhit4,
+					hxd.Res.sound.goodhit5,
 				];
 
 				var perSound = 3;
 				var i = Std.int(correctTiles / perSound);
-				if (i >= sounds.length) i = sounds.length - 1;
+				if (i >= sounds.length)
+					i = sounds.length - 1;
 				var sound = sounds[i];
 				var pitch = correctTiles - i * perSound;
 
 				game.sounds.playSoundPitch(sound, vols[i], 1.0 + pitch * 0.25);
-				correctTiles ++;
+				correctTiles++;
 
 				var bval = 0.5 + correctTiles * 0.05;
 				var orbs = 1 + Std.int(correctTiles / 3);
 
 				for (i in 0...orbs) {
-					var orb = new XpOrb(world, this, bval / orbs);
+					var orb = new XpOrb(world, this, bval / orbs, i * 0.1);
 					orb.x = b.x + Math.random() * 10 - 5;
 					orb.y = b.y + Math.random() * 10 - 5;
 				}
 
-
 				cell.solve();
 				board.nudge();
-				
-				onCellClear(cell);
 
+				onCellClear(cell);
 			} else {
 				cell.poof();
 			}
@@ -476,9 +481,10 @@ class PlayState extends GameState {
 			}
 		}
 	}
-	
+
 	public function winGame() {
-		if (won) return;
+		if (won)
+			return;
 		stopMusic();
 		bricks.discardCards();
 		boostBar.visible = false;
@@ -490,7 +496,7 @@ class PlayState extends GameState {
 
 	function _flashAll() {
 		board.nudge();
-		for(c in board.tiles) {
+		for (c in board.tiles) {
 			c.presolved = true;
 			c.solved = true;
 			c.updateSprite();
@@ -499,11 +505,13 @@ class PlayState extends GameState {
 		}
 		new Timeout(2.0, _showWin);
 	}
-	var winScreen: WinScreen;
+
+	var winScreen:WinScreen;
+
 	function _showWin() {
 		winScreen = new WinScreen(container, this);
 	}
-	
+
 	function stopMusic() {
 		if (caveMusic != null) {
 			caveMusic.stop();
@@ -515,6 +523,7 @@ class PlayState extends GameState {
 
 	public var won = false;
 	public var lost = false;
+
 	public function loseGame() {
 		if (lost) {
 			return;
@@ -526,18 +535,18 @@ class PlayState extends GameState {
 		boostBar.visible = false;
 		new Timeout(1.8, showRestart);
 	}
-	
-	var gameover: GameOverScreen;
+
+	var gameover:GameOverScreen;
+
 	function showRestart() {
 		gameover = new GameOverScreen(container, this);
 	}
-	
 
 	function discardUnusableBricks() {
 		if (bricks.empty) {
 			return;
 		}
-		
+
 		if (board.freeCellCount() == 0) {
 			bricks.discardCards();
 			return;
@@ -556,17 +565,17 @@ class PlayState extends GameState {
 
 		bricks.discardCards(dig);
 	}
-	
-	
+
 	var running = true;
 
 	var wscl = new EasedFloat(2.0, 0.8);
 	var lookRatio = new EasedFloat(0.0, 1.2);
-	
+
 	public var extraFireRateUpgrades = 0;
 	public var extraLifeUpgrades = 0;
 	public var extraDropChanceUpgrades = 0;
-	var extraBonusText: Text;
+
+	var extraBonusText:Text;
 
 	override function update(dt:Float) {
 		super.update(dt);
@@ -579,25 +588,25 @@ class PlayState extends GameState {
 		}
 
 		var bbx = world.x + board.x - 90;
-		var bby =  world.y + board.y + board.height - boostBar.height;
+		var bby = world.y + board.y + board.height - boostBar.height;
 		if (overworld.running) {
 			bbx = overworld.turret.x + overworld.world.x - boostBar.width * 0.5;
 			bby = overworld.turret.y + overworld.world.y - 64;
 			if (boostBar.value <= 0) {
 				boostBar.alpha *= 0.8;
 			}
-		} else if(started) {
+		} else if (started) {
 			boostBar.alpha += (1 - boostBar.alpha) * 0.2;
 		}
 
 		boostBar.x += (bbx - boostBar.x) * 0.1;
 		boostBar.y += (bby - boostBar.y) * 0.1;
-		
+
 		if (Key.isPressed(Key.R)) {
 			game.states.current = new PlayState(Std.int(Math.random() * 1201023));
 			return;
 		}
-		
+
 		#if debug
 		if (Key.isPressed(Key.W)) {
 			winGame();
@@ -609,7 +618,7 @@ class PlayState extends GameState {
 			timeText.alpha += (1 - timeText.alpha) * 0.1;
 			// boostBar.alpha += (1 - boostBar.alpha) * 0.1;
 		}
-		
+
 		timeText.text = time.toTimeString(true);
 		var bns = '';
 		if (extraDropChanceUpgrades > 0) {
@@ -622,24 +631,25 @@ class PlayState extends GameState {
 			bns += 'Life Regen\n -- Lv. $extraLifeUpgrades\n';
 		}
 		extraBonusText.text = bns;
-		
+
 		if (started) {
 			if (bricks.empty) {
 				startChecking();
 			}
-			
+
 			if (checking) {
 				untilCheckNext -= dt;
-				if (untilCheckNext <= 0) checkNext();
+				if (untilCheckNext <= 0)
+					checkNext();
 			}
-			
+
 			if (man.onLadder && man.y < 30) {
 				if (!overworld.running) {
 					overworld.start();
 				}
 			}
 		}
-		
+
 		crosshair.alpha = crosshairAlpha.value;
 		crosshair.x = crosshairX.value;
 		crosshair.y = crosshairY.value;
@@ -651,20 +661,16 @@ class PlayState extends GameState {
 			var cy = crosshairWidth.value * 0.5 + crosshair.y;
 			graphics.lineStyle(2, 0xebede9, 0.6);
 			graphics.moveTo(selectedBrick.x - 20, selectedBrick.y);
-			graphics.curveTo(
-				(selectedBrick.x + cx) * 0.5 , Math.min(selectedBrick.y, cy) - 64.0, 
-				cx, cy 
-			);
+			graphics.curveTo((selectedBrick.x + cx) * 0.5, Math.min(selectedBrick.y, cy) - 64.0, cx, cy);
 		}
-		
-		
+
 		updateCamBounds();
 
 		var s = s2d.getScene();
 		bg.width = s.width;
 		bg.height = s.height;
-		bgRect.width= bg.width;
-		bgRect.height= bg.height;
+		bgRect.width = bg.width;
+		bgRect.height = bg.height;
 		var containerWidth = 1280 * 0.5;
 		var containerHeight = 720 * 0.5;
 
@@ -672,25 +678,16 @@ class PlayState extends GameState {
 		world.setScale(scl);
 		var rr = lookRatio.value;
 
-		world.x = M.mix(
-			s.width * 0.7 - (man.x) * scl, 
-			Math.round((s.width - containerWidth) * 0.5),
-			rr
-		);
-		
-		world.y = M.mix(
-			s.height * 0.5 - (man.y - 32) * scl,
-			Math.round((s.height - containerHeight) * 0.5),
-			rr
-		);
+		world.x = M.mix(s.width * 0.7 - (man.x) * scl, Math.round((s.width - containerWidth) * 0.5), rr);
 
-		
+		world.y = M.mix(s.height * 0.5 - (man.y - 32) * scl, Math.round((s.height - containerHeight) * 0.5), rr);
+
 		if (Key.isPressed(Key.MOUSE_LEFT)) {
 			if (started) {
 				startAiming();
 			}
 		}
-		
+
 		if (aiming && Key.isReleased(Key.MOUSE_LEFT)) {
 			doKick();
 		}

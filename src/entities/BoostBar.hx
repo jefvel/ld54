@@ -1,5 +1,6 @@
 package entities;
 
+import elk.Elk;
 import h3d.Vector;
 import h2d.Object;
 import h2d.Tile;
@@ -14,6 +15,11 @@ import elk.entity.Entity;
 class BoostBar extends Entity {
 	public var width = 64.0;
 	public var height = 16.0;
+	public var value(default, set) = 0.0;
+	
+	var lastVal = 0.0;
+	var accum = 0.0;
+
 	var frame: ScaleGrid;
 	var state: PlayState;
 	var barColors = [
@@ -29,7 +35,6 @@ class BoostBar extends Entity {
 	var glow: ScaleGrid;
 	var glowPad = 16;
 	var bars: Array<Bitmap> = [];
-	public var value(default, set) = 0.0;
 	var boostEase = new EasedFloat(0, 0.6);
 	
 	var ox = 0.0;
@@ -56,9 +61,9 @@ class BoostBar extends Entity {
 		
 		glow = new ScaleGrid(hxd.Res.img.blurrect.toTile(), 24,24,24,24, container);
 		glow.x = glow.y = - glowPad;
-		glow.alpha = 0.0;
 		glow.color = Vector.fromColor(barColors[1]);
 		glow.color.a = 1.0;
+		glow.alpha = 0.0;
 
 		frame = new ScaleGrid(hxd.Res.img.boostbarframe.toTile(),2,2, 4, 2, container);
 		for (c in barColors) {
@@ -80,6 +85,7 @@ class BoostBar extends Entity {
 	override function tick(dt:Float) {
 		super.tick(dt);
 
+		glow.alpha = Math.min(glow.alpha, 2.0);
 		glow.alpha *= 0.9;
 
 		glow.width = width + glowPad * 2;
@@ -104,7 +110,28 @@ class BoostBar extends Entity {
 
 		frame.width = width;
 		frame.height = height;
-		var v = boostEase.value;
+
+		var d = boostEase.targetValue - lastVal;
+		var v = 0.0;
+		if (d > 0) {
+			d = Math.min(d * 0.2, 0.06);
+			accum += d;
+			if (accum > 0.1) {
+				Elk.instance.sounds.playWobble(hxd.Res.sound.click, 0.3);
+				accum -= 0.1;
+			}
+			var p = Std.int(lastVal);
+			lastVal += d;
+			if (p < Std.int(lastVal)) {
+				nudge(0, -700);
+			}
+			v = lastVal;
+		} else {
+			lastVal = boostEase.targetValue;
+			v = boostEase.value;
+		}
+
+
 		for (b in bars) {
 			var s = v;
 			s = Math.min(1, s);

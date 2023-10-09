@@ -184,9 +184,10 @@ class SudokuBoard extends Entity {
 		shuffleBlockRows();
 		
 		solution = grid.copy();
+		
+		generating = true;
 
 		removeCells();
-		
 
 		var ts = tileSize;
 		for (row in 0...9) {
@@ -202,10 +203,15 @@ class SudokuBoard extends Entity {
 				tiles.push(tile);
 			}
 		}
-		
 	}
 	
 	var tileSize = 34;
+	
+	var generating = false;
+	
+	override function tick(dt:Float) {
+		super.tick(dt);
+	}
 	
 	public function nudge() {
 		offYEase.setImmediate(4);
@@ -312,6 +318,7 @@ class SudokuBoard extends Entity {
 			swapCols(c1 * 3 + i, c2 * 3 + i);
 		}
 	}
+
 	
 	function removeCells() {
 		var arr = [];
@@ -325,11 +332,14 @@ class SudokuBoard extends Entity {
 		var unremoved = [];
 		
 		while(true) {
+			trace("pepe");
 			rand.shuffle(arr);
 			numsRemoved = 0;
 			unremoved = [];
+
 			var g = grid.copy();
 			for (i in 0...arr.length) {
+				// trace(i);
 				var toClear = arr[i];
 				var val = g[toClear];
 				g[toClear] = -1;
@@ -338,20 +348,15 @@ class SudokuBoard extends Entity {
 					g[toClear] = val;
 					unremoved.push(toClear);
 					var left = arr.length - i;
-					//if (numsToRemove - numsRemoved > left) {
-						//break;
-					//}
 				} else {
 					numsRemoved ++;
 				}
-				//if (numsRemoved >= numsToRemove) {
-					//break;
-				//}
 			}
-			if (numsRemoved >= numsToRemove) {
+
+			//if (numsRemoved >= numsToRemove) {
 				grid = g.copy();
 				break;
-			}
+			//}
 		}
 		
 		rand.shuffle(unremoved);

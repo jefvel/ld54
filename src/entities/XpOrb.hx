@@ -21,17 +21,21 @@ class XpOrb extends Entity {
 	
 	var value = 0.1;
 	
-	public function new(?p, state, value) {
+	var rOffX = 0.0;
+	
+	public function new(?p, state, value, delay = 0.0) {
 		super(p);
 		this.state = state;
 		this.value = value;
+		untilMove += delay;
 
 		sprite = hxd.Res.img.xporb.toSprite(this);
 		sprite.originX = sprite.originY = 8;
 
 		var d = Math.PI * 2 * Math.random();
 		var s = Math.random() * 120.3 + 50;
-		friction = 3.8;
+		friction = 2.8;
+		rOffX = Math.random() - 0.5;
 
 		svx = Math.cos(d);
 		svy = Math.sin(d);
@@ -67,6 +71,10 @@ class XpOrb extends Entity {
 			return;
 		}
 		
+		rotation = Math.atan2(vy, vx);
+		scaleX = Math.max(1, Math.max(Math.abs(vx / 100), Math.abs(vy / 100)));
+		//scaleY = Math.max(1, Math.abs(vy / 100));
+		
 		moveTime += dt;
 		var barPos = state.boostBar.getAbsPos();
 		var ownPos = getAbsPos();
@@ -75,16 +83,19 @@ class XpOrb extends Entity {
 		
 		barPos.x += state.boostBar.width * 0.5;
 		barPos.y += state.boostBar.height * 0.5;
+		
 
 		var dx = barPos.x - ownPos.x;
 		var dy = barPos.y - ownPos.y;
 		
-		if (Math.abs(dx) < bbar.width * 0.85 && Math.abs(dy) < bbar.height * 0.85) {
+		if (Math.abs(dx) < bbar.width * 0.8 && Math.abs(dy) < bbar.height * 0.8) {
 			addVal();
-			Elk.instance.sounds.playWobble(hxd.Res.sound.click, 0.2);
+			Elk.instance.sounds.playWobble(hxd.Res.sound.xporbhit, 0.3);
 			remove();
 			return;
 		}
+		
+		dx += bbar.width * rOffX;
 
 		var l = Math.sqrt(dx * dx + dy * dy);
 		
