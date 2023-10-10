@@ -7,9 +7,20 @@ import h2d.ScaleGrid;
 import hxd.Rand;
 import elk.entity.Entity;
 
+enum SudokuBoardState {
+	Init;
+	Generating;
+	Generated;
+	Ready;
+	Solved;
+	Failed;
+}
+
 class SudokuBoard extends Entity {
 	var grid = [];
 	var solution = [];
+	
+	public var state: SudokuBoardState = Init;
 	
 	var bg: ScaleGrid;
 	public var tiles: Array<SudokuTile> = [];
@@ -61,10 +72,10 @@ class SudokuBoard extends Entity {
 		return null;
 	}
 	
-	var state: PlayState;
-	public function new(?p, state) {
+	var playState: PlayState;
+	public function new(?p, playState) {
 		super(p);
-		this.state = state;
+		this.playState = playState;
 		offYEase.easeFunction = elk.M.elasticOut;
 		container = new Object(this);
 		bg = new ScaleGrid(hxd.Res.img.bottom.toTile(), 8, 8, 8, 10, container);
@@ -176,6 +187,12 @@ class SudokuBoard extends Entity {
 	public function generate(seed = 1337) {
 		rand = new Rand(seed);
 		grid = templateBoard.copy();
+		state = Generating;
+		
+		#if (target.threaded)
+		sys.thread.Thread.create(() -> {
+		#end
+
 		shuffleNumbers();
 		shuffleRows();
 		shuffleCols();
@@ -184,25 +201,13 @@ class SudokuBoard extends Entity {
 		shuffleBlockRows();
 		
 		solution = grid.copy();
-		
-		generating = true;
 
 		removeCells();
-
-		var ts = tileSize;
-		for (row in 0...9) {
-			for (col in 0...9) {
-				var val = getVal(row, col);
-				var sol = getSol(row, col);
-				var tile = new SudokuTile(container, sol, val != -1, row, col, state);
-				var gapsY = Std.int(row / 3) * 6;
-				var gapsX = Std.int(col / 3) * 6;
-				tile.x = col * ts + gapsX;
-				tile.y = row * ts + gapsY;
-				tile.onOver = onHoverCell;
-				tiles.push(tile);
-			}
-		}
+		
+		state = Generated;
+		#if (target.threaded)
+		});
+		#end
 	}
 	
 	var tileSize = 34;
@@ -211,6 +216,23 @@ class SudokuBoard extends Entity {
 	
 	override function tick(dt:Float) {
 		super.tick(dt);
+		if (state == Generated) {
+			var ts = tileSize;
+			for (row in 0...9) {
+				for (col in 0...9) {
+					var val = getVal(row, col);
+					var sol = getSol(row, col);
+					var tile = new SudokuTile(container, sol, val != -1, row, col, playState);
+					var gapsY = Std.int(row / 3) * 6;
+					var gapsX = Std.int(col / 3) * 6;
+					tile.x = col * ts + gapsX;
+					tile.y = row * ts + gapsY;
+					tile.onOver = onHoverCell;
+					tiles.push(tile);
+				}
+			}
+			state = Ready;
+		}
 	}
 	
 	public function nudge() {
@@ -332,25 +354,49 @@ class SudokuBoard extends Entity {
 		var unremoved = [];
 		
 		while(true) {
-			trace("pepe");
 			rand.shuffle(arr);
 			numsRemoved = 0;
 			unremoved = [];
 
 			var g = grid.copy();
+			var counts = new Map<Int, Int>();
 			for (i in 0...arr.length) {
 				// trace(i);
 				var toClear = arr[i];
 				var val = g[toClear];
+
+				if (!counts.exists(val)) counts[val] = 9;
+				
+				// Unique solutions 
+				var completelyRemovedValues = 0;
+				for (i in 1...10) {
+					var numLeft = counts.exists(i) ? counts[i] : 9;
+					if (i == val) {
+						numLeft --;
+					}
+					if (numLeft <= 0) {
+						completelyRemovedValues ++;
+						if (completelyRemovedValues > 1) break;
+					}
+				}
+
+				if (completelyRemovedValues > 1) {
+					continue;
+				}
+
 				g[toClear] = -1;
 				
-				if (!solutionIsUnique(g.copy())) {
+				if (!solutionIsUnique(g.copy(), toClear, val)) {
 					g[toClear] = val;
 					unremoved.push(toClear);
 					var left = arr.length - i;
 				} else {
 					numsRemoved ++;
 				}
+			}
+			
+			if (81 - numsRemoved  <= 18) {
+				break;
 			}
 
 			//if (numsRemoved >= numsToRemove) {
@@ -366,9 +412,18 @@ class SudokuBoard extends Entity {
 		}
 	}
 	
-	function solutionIsUnique(cells: Array<Int>) {
-		var s = solve(0, 0, cells);
-		if (s > 1) return false;
+	function solutionIsUnique(cells: Array<Int>, removedIndex, correctValue) {
+		for (i in 1...10) {
+			if (i == correctValue) continue;
+			if (!canPlace(Std.int(removedIndex / 9), removedIndex % 9, i, cells)){
+				continue;
+			}
+
+			cells[removedIndex] = i;
+			var s = solve(0, 0, cells);
+			if (s >= 1) return false;
+		}
+
 		return true;
 	}
 	
@@ -386,7 +441,7 @@ class SudokuBoard extends Entity {
 		}
 		
 		var val = 1;
-		while(val <= 9 && count < 2) {
+		while(val <= 9 && count < 1) {
 			if (canPlace(row, col, val, cells)) {
 				cells[row * 9 + col] = val;
 				count = solve(row + 1, col, cells, count);

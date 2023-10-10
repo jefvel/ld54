@@ -75,9 +75,11 @@ class PlayState extends GameState {
 	}
 
 	var crosshair:ScaleGrid;
+	var crosshairDot: Bitmap;
 	var hoveredCell:SudokuTile;
 
 	public var isDailyChallenge = false;
+	var bufferedBoard: SudokuBoard;
 
 	function onHoverCell(cell:SudokuTile) {
 		if (!aiming)
@@ -134,6 +136,7 @@ class PlayState extends GameState {
 		}
 
 		world = new Object(container);
+		container.alpha = 0;
 		board = new SudokuBoard(world, this);
 
 		board.x = 110;
@@ -159,6 +162,8 @@ class PlayState extends GameState {
 
 		graphics = new Graphics(world);
 		crosshair = new ScaleGrid(hxd.Res.img.crosshair.toTile(), 16, 16, 16, 16, world);
+		crosshairDot = new Bitmap(hxd.Res.img.crosshairdot.toTile(), world);
+		crosshairDot.tile.dx = crosshairDot.tile.dy = -4;
 
 		overworld = new OverWorld(container, this, this.seed);
 
@@ -193,26 +198,28 @@ class PlayState extends GameState {
 			return;
 
 		generationDone = true;
+		
+		new Timeout(0.1, () -> {
 
-		new Timeout(0.15, () -> {
-			caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
-			overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
-			started = true;
-			generating = false;
-			wscl.value = 1.0;
-			lookRatio.value = 1.0;
-			mainMenu.close();
+		caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
+		overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
+		started = true;
+		generating = false;
+		wscl.value = 1.0;
+		lookRatio.value = 1.0;
+		mainMenu.close();
 
-			board.makeAppear();
+		board.makeAppear();
 
-			var f = board.getDigitsLeft();
-			rand.shuffle(f);
-			for (i in 0...3) {
-				bricks.addBrick(new SudokuBullet(world, [f[i]], false));
-			}
-			if (bricks.empty) {
-				startChecking();
-			}
+		var f = board.getDigitsLeft();
+		rand.shuffle(f);
+		for (i in 0...3) {
+			bricks.addBrick(new SudokuBullet(world, [f[i]], false));
+		}
+		if (bricks.empty) {
+			startChecking();
+		}
+
 		});
 	}
 
@@ -281,11 +288,28 @@ class PlayState extends GameState {
 	var crosshairWidth = new EasedFloat(16.0, 0.4);
 	var crosshairX = new EasedFloat();
 	var crosshairY = new EasedFloat();
+	var generatedBoards = 0;
 
 	override function tick(dt:Float) {
 		super.tick(dt);
+		
+		/*
+		if (bufferedBoard == null) {
+			bufferedBoard = new SudokuBoard(null, this);
+			bufferedBoard.generate(Std.int(Math.random() * 100000000));
+		} else {
+			if (bufferedBoard.state == Generated) {
+				bufferedBoard = null;
+				generatedBoards ++;
+				trace('generated $generatedBoards');
+			}
+		}
+		*/
+
 		if (!started && generating) {
-			onGenerated();
+			if (board.state == Ready) {
+				onGenerated();
+			}
 		}
 
 		if (overGround) {
@@ -659,18 +683,26 @@ class PlayState extends GameState {
 		if (selectedBrick != null && aiming && hoveredCell != null) {
 			var cx = crosshairWidth.value * 0.5 + crosshair.x;
 			var cy = crosshairWidth.value * 0.5 + crosshair.y;
-			graphics.lineStyle(2, 0xebede9, 0.6);
-			graphics.moveTo(selectedBrick.x - 20, selectedBrick.y);
+			graphics.lineStyle(2, 0xc7cfcc, 1.0);
+			graphics.moveTo(selectedBrick.x - 14, selectedBrick.y);
 			graphics.curveTo((selectedBrick.x + cx) * 0.5, Math.min(selectedBrick.y, cy) - 64.0, cx, cy);
+			crosshairDot.x = cx;
+			crosshairDot.y = cy;
+			crosshairDot.visible = true;
+		} else {
+			crosshairDot.visible = false;
 		}
 
 		updateCamBounds();
+		
+		container.alpha += (1 - container.alpha) * 0.2;
 
 		var s = s2d.getScene();
 		bg.width = s.width;
 		bg.height = s.height;
 		bgRect.width = bg.width;
 		bgRect.height = bg.height;
+
 		var containerWidth = 1280 * 0.5;
 		var containerHeight = 720 * 0.5;
 
@@ -679,7 +711,6 @@ class PlayState extends GameState {
 		var rr = lookRatio.value;
 
 		world.x = M.mix(s.width * 0.7 - (man.x) * scl, Math.round((s.width - containerWidth) * 0.5), rr);
-
 		world.y = M.mix(s.height * 0.5 - (man.y - 32) * scl, Math.round((s.height - containerHeight) * 0.5), rr);
 
 		if (Key.isPressed(Key.MOUSE_LEFT)) {
