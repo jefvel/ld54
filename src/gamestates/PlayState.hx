@@ -171,8 +171,12 @@ class PlayState extends GameState {
 		timeText.alpha = 0;
 		extraBonusText = new Text(hxd.Res.fonts.marumonica.toFont(), timeText);
 		extraBonusText.y = 32;
+
 		boostBar = new BoostBar(container, this);
 		boostBar.alpha = 0;
+		boostBar.sizePerSegment = 5;
+		boostBar.maxValue = 5;
+		
 		mainMenu = new MainMenu(container, this);
 	}
 
@@ -611,16 +615,24 @@ class PlayState extends GameState {
 			mainMenu.x = b.x + board.width * wscl.value - 240;
 		}
 
-		var bbx = world.x + board.x - 90;
-		var bby = world.y + board.y + board.height - boostBar.height;
+		var bbx = timeText.x + boostBar.width * 0.5 + 4;//world.x + board.x - 90;
+		var bby = world.y + board.y + board.height * 0.5;//- boostBar.height;
 		if (overworld.running) {
-			bbx = overworld.turret.x + overworld.world.x - boostBar.width * 0.5;
+			bbx = overworld.turret.x + overworld.world.x;
 			bby = overworld.turret.y + overworld.world.y - 64;
+			boostBar.width = 64;
+			boostBar.height = 16;
 			if (boostBar.value <= 0) {
 				boostBar.alpha *= 0.8;
 			}
+
+			boostBar.orientation = Horizontal;
+
 		} else if (started) {
 			boostBar.alpha += (1 - boostBar.alpha) * 0.2;
+			boostBar.orientation = Vertical;
+			boostBar.width = 20;
+			boostBar.height = board.height - 40; 
 		}
 
 		boostBar.x += (bbx - boostBar.x) * 0.1;

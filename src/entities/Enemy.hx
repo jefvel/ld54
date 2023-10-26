@@ -39,7 +39,7 @@ class Enemy extends Actor {
 		if (dead) return;
 		uncollidable = true;
 		dead = true;
-		var s = hxd.Res.img.enemyexplode.toSprite(parent);
+		var s = hxd.Res.img.enemyexplode.toSprite(state.parts);
 		s.x = x;
 		s.y = y - 16;
 		s.originX = s.originY = 16;

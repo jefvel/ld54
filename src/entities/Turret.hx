@@ -96,7 +96,7 @@ class Turret extends Actor {
 		off.setImmediate(6);
 		off.value = 0;
 		untilFire = fireRate;
-		var bullet = new Bullet(state.world, target);
+		var bullet = new Bullet(state.world, target, state);
 		bullet.damage += state.state.extraFireRateUpgrades * 0.3;
 		bullet.damage += boost;
 		var dx = target.x - x;

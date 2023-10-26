@@ -146,7 +146,15 @@ class SudokuTile extends Entity {
 			}
 		}
 
-		cross.visible = crossVisible;
+		if (crossVisible) {
+			cross.alpha += (1 - cross.alpha) * 0.15;
+			cross.visible = true;
+		} else {
+			cross.alpha *= 0.8;
+			if (cross.alpha < 0.1) {
+				cross.visible = false;
+			}
+		}
 	}
 
 	override function sync(ctx:RenderContext) {

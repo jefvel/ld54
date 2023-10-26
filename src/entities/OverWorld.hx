@@ -15,12 +15,13 @@ import h2d.filter.Nothing;
 import h2d.Object;
 import elk.entity.Entity;
 
-
 class OverWorld extends Entity {
 	public var width = 1280 >> 1;
 	public var height = 720 >> 1;
 
-	public var world: Layers;
+	public var world: Object;
+	public var parts: Object;
+	public var characterLayer: Layers;
 	public var ladder: LilLadder;
 	public var turret: Turret;
 	public var man: SmallGuy;
@@ -54,17 +55,20 @@ class OverWorld extends Entity {
 		bg = new Bitmap(Tile.fromColor(0x000000), container);
 		handler = new CollisionHandler();
 		filter = new Nothing();
-		world = new Layers(container);
+		world = new Object(container);
+		characterLayer = new Layers(world);
+		parts = new Object(world);
 		mask = new Graphics(world);
 		world.filter = new h2d.filter.Mask(mask, false);
 		worldBg = new Bitmap(Tile.fromColor(0x10141f), world);
-		ladder = new LilLadder(world);
+
+		ladder = new LilLadder(characterLayer);
 		ladder.x = width * 0.5;
 		ladder.y = height * 0.5 + 64;
-		turret = new Turret(world, this);
+		turret = new Turret(characterLayer, this);
 		turret.x = width * 0.5;
 		turret.y = height * 0.5;
-		man = new SmallGuy(world, this);
+		man = new SmallGuy(characterLayer, this);
 		objects = [];
 		objects.push(man);
 		objects.push(ladder);
@@ -82,6 +86,9 @@ class OverWorld extends Entity {
 		var e = enemy;
 		var r = rand.rand() * Math.PI * 2;
 		var ww = visibleRange + 16;
+		if (activeSessionWaves == 0 && ww > 200) {
+			ww *= 0.65;
+		}
 		e.x = width * 0.5 +  Math.cos(r) * ww;
 		e.y = height * 0.5 +  Math.sin(r) * ww;
 		enemies.push(e);
@@ -120,15 +127,17 @@ class OverWorld extends Entity {
 		}
 
 		for(i in 0...spawnCount) {
-			spawnEnemy(new SkullGuy(world, this));
+			spawnEnemy(new SkullGuy(characterLayer, this));
 		}
 
 		if (waves > 30 && waves % 4 == 0) {
-			spawnEnemy(new BlobGuy(world, this));
+			spawnEnemy(new BlobGuy(characterLayer, this));
 		}
 
 		waveDuration -= 0.1; 
 		if (waveDuration < 3) waveDuration = 3;
+
+		activeSessionWaves ++;
 	}
 	
 	var offX = new EasedFloat(0, 0.5);
@@ -212,7 +221,7 @@ class OverWorld extends Entity {
 				for(t in vals) toPutInFront.push(t);
 			}
 
-			var t = new SudokuBullet(world, vals, true, magic);
+			var t = new SudokuBullet(characterLayer, vals, true, magic);
 			bulls.push(t);
 			t.x = e.x;
 			t.y = e.y - t.height * 0.5 - 3;
@@ -274,6 +283,7 @@ class OverWorld extends Entity {
 		objects.remove(e);
 	}
 	
+	var activeSessionWaves = 0;
 	public function start() {
 		objects = [];
 		enemies = [];
@@ -286,12 +296,12 @@ class OverWorld extends Entity {
 		objects.push(ladder);
 		objects.push(turret);
 
-		world.removeChildren();
-		world.addChild(worldBg);
-		world.addChild(ladder);
-		world.addChild(man);
-		world.addChild(turret);
-		world.addChild(mask);
+		characterLayer.removeChildren();
+		characterLayer.addChild(worldBg);
+		characterLayer.addChild(ladder);
+		characterLayer.addChild(man);
+		characterLayer.addChild(turret);
+		characterLayer.addChild(mask);
 		
 		turret.reset();
 		for (p in bulls) p.remove();
@@ -301,6 +311,7 @@ class OverWorld extends Entity {
 
 		man.x = ladder.x;
 		man.y = ladder.y - 8;
+		activeSessionWaves = 0;
 		running = true;
 		waveTime = waveDuration;
 	}
@@ -313,7 +324,7 @@ class OverWorld extends Entity {
 		turret.paused = true;
 		for (e in enemies) e.remove();
 		man.dead = true;
-		world.removeChild(man);
+		characterLayer.removeChild(man);
 		man.remove();
 		ladder.remove();
 		for (b in bulls)b.remove();
@@ -359,7 +370,7 @@ class OverWorld extends Entity {
 		mask.beginFill(0xfffff);
 		mask.drawCircle(width * 0.5, height * 0.5, visibleRange);
 		mask.endFill();
-		world.ysort(0);
+		characterLayer.ysort(0);
 		var s = getScene();
 		bg.width = s.width;
 		bg.height = s.height;

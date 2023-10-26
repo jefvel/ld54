@@ -1,15 +1,16 @@
 package entities;
 
 import elk.graphics.Sprite;
-import h2d.Bitmap;
 
 class Bullet extends Actor {
 	public var bm : Sprite;
 	var target: Enemy;
 	var speed = 20.0;
 	public var damage = 1.0;
-	public function new(?p, target) {
+	var state: OverWorld;
+	public function new(?p, target, state) {
 		super(p);
+		this.state = state;
 		this.target = target;
 		bm = hxd.Res.img.bullet.toSprite(this);
 		bm.originX = 7;
@@ -29,7 +30,7 @@ class Bullet extends Actor {
 		dy *= speed;
 		if (l < speed) {
 			target.hurt(damage);
-			var s = hxd.Res.img.enemyhit.toSprite(parent);
+			var s = hxd.Res.img.enemyhit.toSprite(state.parts);
 			s.x = x;
 			s.y = y;
 			s.originX = s.originY = 8;

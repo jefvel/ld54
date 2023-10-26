@@ -93,8 +93,8 @@ class SmallGuy extends Actor {
 		shadow.visible = true;
 		
 		var s = getScene();
-		tx = s.mouseX - parent.x;
-		ty = s.mouseY - parent.y;
+		tx = s.mouseX - state.world.x;
+		ty = s.mouseY - state.world.y;
 		moving = true;
 		
 		if (moving) {

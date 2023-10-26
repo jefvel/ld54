@@ -81,8 +81,8 @@ class XpOrb extends Entity {
 		
 		var bbar = state.boostBar;
 		
-		barPos.x += state.boostBar.width * 0.5;
-		barPos.y += state.boostBar.height * 0.5;
+		//barPos.x += state.boostBar.width * 0.5;
+		//barPos.y += state.boostBar.height * 0.5;
 		
 
 		var dx = barPos.x - ownPos.x;
@@ -95,7 +95,11 @@ class XpOrb extends Entity {
 			return;
 		}
 		
-		dx += bbar.width * rOffX;
+		if (bbar.orientation == Horizontal) {
+			dx += bbar.width * rOffX;
+		} else {
+			dy += bbar.height * rOffX;
+		}
 
 		var l = Math.sqrt(dx * dx + dy * dy);
 		
