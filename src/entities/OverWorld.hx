@@ -181,6 +181,7 @@ class OverWorld extends Entity {
 
 		if (dropRand.rand() < e.dropChance + extraDropChance) {
 			var l = 1;
+			/*
 			if (originalDropList.length > 19) {
 				if (dropRand.rand() > 0.8) {
 					l = 2;
@@ -192,6 +193,7 @@ class OverWorld extends Entity {
 					}
 				}
 			}
+			*/
 
 			var magic = false;
 			if (state.extraDropChanceUpgrades > 0 || state.extraFireRateUpgrades > 0 || state.extraLifeUpgrades > 0) {

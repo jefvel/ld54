@@ -44,6 +44,7 @@ class CollectedBullets extends Entity {
 	
 	public function addRandomBrick() {
 		var l = 1;
+		/*
 		if (Math.random() > 0.8) {
 			l = 2;
 			if (Math.random() > 0.6) {
@@ -53,6 +54,7 @@ class CollectedBullets extends Entity {
 				l = 4;
 			}
 		}
+		*/
 		var vals = [];
 		for (i in 0...l) {
 			vals.push(Std.int(Math.random() * 9) + 1);

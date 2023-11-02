@@ -1,5 +1,8 @@
 _base.hxml
 
+-lib closure
+-D closure_overwrite
+
 tool.generateAssets.hxml
 
 -js build/web/game.js

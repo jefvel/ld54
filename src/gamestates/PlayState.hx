@@ -205,24 +205,24 @@ class PlayState extends GameState {
 		
 		new Timeout(0.1, () -> {
 
-		caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
-		overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
-		started = true;
-		generating = false;
-		wscl.value = 1.0;
-		lookRatio.value = 1.0;
-		mainMenu.close();
+			caveMusic = game.sounds.playMusic(hxd.Res.sound.musiccave, 0.3);
+			overworldMusic = game.sounds.playMusic(hxd.Res.sound.overworld, 0.0);
+			started = true;
+			generating = false;
+			wscl.value = 1.0;
+			lookRatio.value = 1.0;
+			mainMenu.close();
 
-		board.makeAppear();
+			board.makeAppear();
 
-		var f = board.getDigitsLeft();
-		rand.shuffle(f);
-		for (i in 0...3) {
-			bricks.addBrick(new SudokuBullet(world, [f[i]], false));
-		}
-		if (bricks.empty) {
-			startChecking();
-		}
+			var f = board.getDigitsLeft();
+			rand.shuffle(f);
+			for (i in 0...3) {
+				bricks.addBrick(new SudokuBullet(world, [f[i]], false));
+			}
+			if (bricks.empty) {
+				startChecking();
+			}
 
 		});
 	}

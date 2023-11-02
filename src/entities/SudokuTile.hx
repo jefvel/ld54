@@ -123,20 +123,24 @@ class SudokuTile extends Entity {
 				alpha = 1;
 				appearing = false;
 			}
+			container.y = -(1 - alpha) * 4;
 		}
 		
-		container.y = -(1 - alpha) * 4;
 
 		flashCol -= dt * 2.0;
 		flashCol = Math.max(0.0, flashCol);
 		var c = 1.0 + flashCol * 10.0;
 		sprite.color.set(c, c, c);
 		var crossVisible = false;
+		var blocked = false;
 		if (!solved && bullet == null) {
 			if (state.man.selectedBrick != null) {
 				var b = state.man.selectedBrick.vals;
 				var v = true;
 				for (val in b) {
+					if (state.board.tileIsBlocked(col, row, val)) {
+						blocked = true;
+					}
 					if (!triedValues.exists(val)) {
 						v = false;
 						break;
@@ -144,6 +148,10 @@ class SudokuTile extends Entity {
 				}
 				crossVisible = v;
 			}
+		}
+		
+		if (!appearing) {
+			alpha += ((blocked ? 0.3 : 1) - alpha) * 0.2;
 		}
 
 		if (crossVisible) {

@@ -123,6 +123,51 @@ class SudokuBoard extends Entity {
 		return true;
 	}
 	
+	public function tileIsBlocked(col: Int, row: Int, numberToPlace: Int) {
+		if (rowContainsNumber(row, numberToPlace)) return true;
+		if (colContainsNumber(col, numberToPlace)) return true;
+		if (houseContainsNumber(col, row, numberToPlace)) return true;
+		return false;
+	}
+	
+	public function rowContainsNumber(row: Int, number: Int) {
+		for (c in 0...9) {
+			var t = getTileAt(row, c);
+			if (t.solved && t.value == number) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	public function colContainsNumber(col: Int, number: Int) {
+		for (r in 0...9) {
+			var t = getTileAt(r, col);
+			if (t.solved && t.value == number) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	public function houseContainsNumber(col: Int, row: Int, number: Int) {
+		var colh = Std.int(col / 3) * 3;
+		var rowh = Std.int(row / 3) * 3;
+
+		for (r in 0...3) {
+			for (c in 0...3) {
+				var t = getTileAt(r + rowh, c + colh);
+				if (t.solved && t.value == number) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	public var rand: Rand;
 	public var padding = 8;
 	var container: Object;
